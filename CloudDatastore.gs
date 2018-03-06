@@ -197,7 +197,7 @@ function run() {
       query: {kind:[{name: "strings"}]}
     });
   
-    ds.beginTransaction({})
+    ds.beginTransaction({});
   
     ds.commit({});
 }
