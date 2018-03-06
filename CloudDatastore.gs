@@ -6,7 +6,7 @@
 
 var PROJECT_ID   = "";
 var CLIENT_ID    = "";
-var CLIENT_EMAIL = '...-compute@developer.gserviceaccount.com';
+var CLIENT_EMAIL = "...-compute@developer.gserviceaccount.com";
 var PRIVATE_KEY  = "";
 var SCOPE        = "https://www.googleapis.com/auth/datastore";
 var BASEURL      = "https://datastore.googleapis.com";
@@ -30,13 +30,16 @@ var gds = {
     if(!this.service){this.createService();}
     if (this.service.hasAccess()) {
       
+      if(typeof(payload) === "undefined"){payload={};}
+      if(typeof(keys) === "undefined"){keys=[];}
+      
       var options = {
         method: "POST",
         headers: {Authorization: 'Bearer ' + this.service.getAccessToken()},
         contentType: "application/json",
         payload: JSON.stringify(payload),
         muteHttpExceptions: true,
-        keys: []
+        keys: keys
       };
       
       switch(method){
