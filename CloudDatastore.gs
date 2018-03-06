@@ -18,7 +18,7 @@ var gds = {
 
   createService: function() {
     this.service = OAuth2.createService("Datastore")
-    .setTokenUrl('https://www.googleapis.com/oauth2/v4/token')
+    .setTokenUrl("https://www.googleapis.com/oauth2/v4/token")
     .setPropertyStore(PropertiesService.getScriptProperties())
     // .setSubject(Session.getActiveUser().getEmail())
     .setPrivateKey(PRIVATE_KEY)
