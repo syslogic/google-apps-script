@@ -52,31 +52,31 @@ var gds = {
       /* the individual api methods can be handled here */
       switch(method){
         case "runQuery":
-          Logger.log(method + " >> " + options.payload);
+          Logger.log(method + " > " + options.payload);
           break;
           
         case "allocateIds":
-          Logger.log(method + " >> " + options.payload);
+          Logger.log(method + " > " + options.payload);
           break;
           
         case "beginTransaction":
-          Logger.log(method + " >> " + options.payload);
+          Logger.log(method + " > " + options.payload);
           break;
           
         case "commit":
-          Logger.log(method + " >> " + options.payload);
+          Logger.log(method + " > " + options.payload);
           break;
           
         case "lookup":
-          Logger.log(method + " >> " + options.payload);
+          Logger.log(method + " > " + options.payload);
           break;
           
         case "reserveIds":
-          Logger.log(method + " >> " + options.payload);
+          Logger.log(method + " > " + options.payload);
           break;
           
         case "rollback":
-          Logger.log(method + " >> " + options.payload);
+          Logger.log(method + " > " + options.payload);
           break;
           
         default:
