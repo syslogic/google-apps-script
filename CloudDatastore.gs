@@ -15,6 +15,7 @@ var BASEURL      = "https://datastore.googleapis.com";
 var gds = {
   
   baseUrl: BASEURL + "/v1/projects/" + PROJECT_ID + ":",
+  transactionId: false,
   oauth: false,
 
   /* it creates the oAuth2 service */
@@ -49,7 +50,7 @@ var gds = {
         keys: keys
       };
       
-      /* the individual api methods can be handled here */
+      /* the individual api methods are being handled here */
       switch(method){
         case "runQuery":
           Logger.log(method + " > " + options.payload);
@@ -64,11 +65,17 @@ var gds = {
           break;
           
         case "commit":
-          Logger.log(method + " > " + options.payload);
+          if(! this.transactionId){
+            Logger.log("call beginTransaction() before attempting to commit().");
+            return false;
+          } else {
+            payload.transaction = this.transactionId;
+            Logger.log(method + " > " + options.payload);
+          }
           break;
           
         case "lookup":
-          Logger.log(method + " > " + options.payload);
+          Logger.log(method + " > " + options.keys.join(", "));
           break;
           
         case "reserveIds":
@@ -76,7 +83,13 @@ var gds = {
           break;
           
         case "rollback":
-          Logger.log(method + " > " + options.payload);
+          if(! this.transactionId){
+            Logger.log("cannot rollback() without a transaction.");
+            return false;
+          } else {
+            payload.transaction = this.transactionId;
+            Logger.log(method + " > " + options.payload);
+          }
           break;
           
         default:
@@ -86,10 +99,7 @@ var gds = {
       
       var response = UrlFetchApp.fetch(this.baseUrl + method, options);
       var result = JSON.parse(response.getContentText());
-      
-      for(i=0; i < result.batch['entityResults'].length; i++){
-        Logger.log(JSON.stringify(result.batch['entityResults'][i]));
-      }
+      this.handleResult(method, result);
       return result;
       
     } else {
@@ -97,7 +107,41 @@ var gds = {
       return false;
     }
   },
-  
+    
+  /* the responses are being handled here */
+  handleResult: function(method, result) {
+    
+    switch(method){
+        
+      case "runQuery":
+        for(i=0; i < result.batch['entityResults'].length; i++) {
+          Logger.log(JSON.stringify(result.batch['entityResults'][i]));
+        }
+        break;
+        
+      case "allocateIds":break;
+        
+      case "beginTransaction":
+        if(typeof(result.transaction) !== "undefined" && result.transaction != "") {
+          Logger.log(method + " > " + result.transaction);
+          this.transactionId = result.transaction;
+        }
+        break;
+        
+      case "commit":
+        break;
+        
+      case "lookup":
+        break;
+        
+      case "reserveIds":
+        break;
+        
+      case "rollback":
+        break;
+    }
+  },
+    
   /* method wrappers, for calling the API methods by their name */
   runQuery:         function(payload, keys) {        this.request("runQuery", payload, keys);},
   allocateIds:      function(payload, keys) {     this.request("allocateIds", payload, keys);},
@@ -106,7 +150,7 @@ var gds = {
   lookup:           function(payload, keys) {          this.request("lookup", payload, keys);},
   reserveIds:       function(payload, keys) {      this.request("reserveIds", payload, keys);},
   rollback:         function(payload, keys) {        this.request("rollback", payload, keys);},
-  
+                  
   /* resets the authorization state */
   resetAuth: function() {
     this.oauth.reset();
@@ -117,5 +161,5 @@ var gds = {
 function run() {
     gds.runQuery({
       query: {kind:[{name: "strings"}]}
-    });
+    }, false);
 }
