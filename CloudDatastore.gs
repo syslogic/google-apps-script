@@ -6,29 +6,68 @@
    @see https://cloud.google.com/datastore/docs/reference/data/rest/
 */
 
-var PROJECT_ID   = "...";
-var CLIENT_ID    = "...";
-var CLIENT_EMAIL = "...-compute@developer.gserviceaccount.com";
-var PRIVATE_KEY  = "...";
-var SCOPE        = "https://www.googleapis.com/auth/datastore";
-var BASEURL      = "https://datastore.googleapis.com";
+/*
+   Apps Script: Accessing the Google Cloud Datastore under a Service Account
+   @author: Martin Zeitler, https://plus.google.com/106963082057954766426
+   @depends on `1B7FSrk5Zi6L1rSxxTDgDEUsPzlukDsi4KGuTMorsTQHhGBzBkMun4iDF`
+   @see https://stackoverflow.com/questions/49112189/49113976#49113976
+   @see https://cloud.google.com/datastore/docs/reference/data/rest/
+*/
+
+/* Service Account configuration JSON on Google Drive (your filename may vary) */
+var JSON_CONFIG = "serviceaccount.json";
 
 /* API wrapper */
 var gds = {
   
-  baseUrl: BASEURL + "/v1/projects/" + PROJECT_ID + ":",
-  transactionId: false,
-  oauth: false,
+  scopes: "https://www.googleapis.com/auth/datastore https://www.googleapis.com/auth/drive",
 
-  /* it creates the oAuth2 service */
-  createOAuth2Service: function() {
+  projectId:   false,
+  baseUrl:     false,
+  clientId:    false,
+  clientEmail: false,
+  privateKey:  false,
+  oauth:       false,
+ 
+  transactionId: false,
+  
+  /* returns an instance */
+  getInstance: function() {
+    
+    /* configure the client on demand */
+    if(!this.config) {this.getConfig(JSON_CONFIG);}
+    
+    /* authenticate the client on demand */
+    if(!this.oauth) {this.createService();}
+    
+    return this;
+  },
+  
+  /* loads the config json from Google Drive */
+  getConfig: function(filename) {
+    var it = DriveApp.getFilesByName(filename);
+    while (it.hasNext()) {
+      
+      var file = it.next();
+      var data = JSON.parse(file.getAs("application/json").getDataAsString());
+      this.baseUrl     = "https://datastore.googleapis.com/v1/projects/" + data.project_id + ":"
+      this.projectId   = data.project_id;
+      this.privateKey  = data.private_key;
+      this.clientEmail = data.client_email;
+      this.clientId    = data.client_id;
+      continue;
+    }
+  },
+  
+  /* creates the oAuth2 service */
+  createService: function() {
     this.oauth = OAuth2.createService("Datastore")
     .setTokenUrl("https://www.googleapis.com/oauth2/v4/token")
     .setPropertyStore(PropertiesService.getScriptProperties())
     // .setSubject(Session.getActiveUser().getEmail())
-    .setPrivateKey(PRIVATE_KEY)
-    .setIssuer(CLIENT_EMAIL)
-    .setScope(SCOPE);
+    .setPrivateKey(this.privateKey)
+    .setIssuer(this.clientEmail)
+    .setScope(this.scopes);
   },
 
   /* API request */
@@ -37,9 +76,6 @@ var gds = {
     /* the parameters should neither be undefined nor false */
     if(typeof(payload) === "undefined" || !payload) {payload={};}
     if(typeof(keys)    === "undefined" || !keys)    {keys=[];}
-    
-    /* authenticate the client on demand */
-    if(!this.oauth) {this.createOAuth2Service();}
     
     if (this.oauth.hasAccess()) {
       
@@ -58,10 +94,6 @@ var gds = {
           Logger.log(method + " > " + options.payload);
           break;
           
-        case "allocateIds":
-          Logger.log(method + " > " + options.keys.join(", "));
-          break;
-          
         case "beginTransaction":
           Logger.log(method + " > " + options.payload);
           break;
@@ -76,14 +108,6 @@ var gds = {
           }
           break;
           
-        case "lookup":
-          Logger.log(method + " > " + options.keys.join(", "));
-          break;
-          
-        case "reserveIds":
-          Logger.log(method + " > " + options.payload);
-          break;
-          
         case "rollback":
           if(! this.transactionId){
             Logger.log("cannot rollback() without a transaction.");
@@ -92,6 +116,12 @@ var gds = {
             payload.transaction = this.transactionId;
             Logger.log(method + " > " + options.payload);
           }
+          break;         
+          
+        case "allocateIds":
+        case "reserveIds":
+        case "lookup":
+          Logger.log(method + " > " + options.keys.join(", "));
           break;
           
         default:
@@ -105,19 +135,21 @@ var gds = {
       return result;
       
     } else {
-      Logger.log(this.service.getLastError());
+      Logger.log(this.oauth.getLastError());
       return false;
     }
   },
     
-  /* the responses are being handled here */
+  /* handles the responses */
   handleResult: function(method, result) {
     
     switch(method){
         
       case "runQuery":
-        for(i=0; i < result.batch['entityResults'].length; i++) {
-          Logger.log(JSON.stringify(result.batch['entityResults'][i]));
+        if(typeof(result.batch) !== "undefined") {
+          for(i=0; i < result.batch['entityResults'].length; i++) {
+            Logger.log(JSON.stringify(result.batch['entityResults'][i]));
+          }
         }
         break;
       
@@ -155,16 +187,25 @@ var gds = {
   allocateIds:      function(keys) {this.request("allocateIds", false, keys);},
   reserveIds:       function(keys) {this.request("reserveIds",  false, keys);},
   lookup:           function(keys) {this.request("lookup",      false, keys);},
-  
+
   /* resets the authorization state */
   resetAuth: function() {
     this.oauth.reset();
   }
 };
 
-/* it queries the Cloud Datastore */
+/* Cloud Datastore */
 function run() {
-    gds.runQuery({
+  
+    /* in order not to load the configuration over and over */
+    var ds = gds.getInstance();
+  
+    /* queries the Cloud Datastore */
+    ds.runQuery({
       query: {kind:[{name: "strings"}]}
     });
+  
+    ds.beginTransaction({})
+  
+    ds.commit({});
 }
