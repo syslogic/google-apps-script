@@ -143,15 +143,17 @@ var gds = {
     }
   },
     
-  /* method wrappers, for calling the API methods by their name */
-  runQuery:         function(payload, keys) {        this.request("runQuery", payload, keys);},
-  allocateIds:      function(payload, keys) {     this.request("allocateIds", payload, keys);},
-  beginTransaction: function(payload, keys) {this.request("beginTransaction", payload, keys);},
-  commit:           function(payload, keys) {          this.request("commit", payload, keys);},
-  lookup:           function(payload, keys) {          this.request("lookup", payload, keys);},
-  reserveIds:       function(payload, keys) {      this.request("reserveIds", payload, keys);},
-  rollback:         function(payload, keys) {        this.request("rollback", payload, keys);},
-                  
+  //* method wrappers, which require a payload object */
+  runQuery:         function(payload) {this.request("runQuery", payload, false);},
+  beginTransaction: function(payload) {this.request("beginTransaction", payload, false);},
+  commit:           function(payload) {this.request("commit", payload, false);},
+  rollback:         function(payload) {this.request("rollback", payload, false);},
+  
+  /* method wrappers, which require an array of keys */
+  allocateIds:      function(keys)    {this.request("allocateIds", false, keys);},
+  reserveIds:       function(keys)    {this.request("reserveIds", false, keys);},
+  lookup:           function(keys)    {this.request("lookup", false, keys);},
+  
   /* resets the authorization state */
   resetAuth: function() {
     this.oauth.reset();
@@ -162,5 +164,5 @@ var gds = {
 function run() {
     gds.runQuery({
       query: {kind:[{name: "strings"}]}
-    }, false);
+    });
 }
