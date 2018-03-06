@@ -119,26 +119,27 @@ var gds = {
           Logger.log(JSON.stringify(result.batch['entityResults'][i]));
         }
         break;
-        
-      case "allocateIds":break;
-        
+      
       case "beginTransaction":
         if(typeof(result.transaction) !== "undefined" && result.transaction != "") {
           Logger.log(method + " > " + result.transaction);
           this.transactionId = result.transaction;
         }
         break;
-        
+      
       case "commit":
         break;
-        
-      case "lookup":
+      
+      case "rollback":
         break;
-        
+      
+      case "allocateIds":
+        break;
+      
       case "reserveIds":
         break;
-        
-      case "rollback":
+      
+      case "lookup":
         break;
     }
   },
@@ -150,9 +151,9 @@ var gds = {
   rollback:         function(payload) {this.request("rollback", payload, false);},
   
   /* method wrappers, which require an array of keys */
-  allocateIds:      function(keys)    {this.request("allocateIds", false, keys);},
-  reserveIds:       function(keys)    {this.request("reserveIds", false, keys);},
-  lookup:           function(keys)    {this.request("lookup", false, keys);},
+  allocateIds:      function(keys) {this.request("allocateIds", false, keys);},
+  reserveIds:       function(keys) {this.request("reserveIds", false, keys);},
+  lookup:           function(keys) {this.request("lookup", false, keys);},
   
   /* resets the authorization state */
   resetAuth: function() {
