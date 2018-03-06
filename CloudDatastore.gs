@@ -33,8 +33,8 @@ var gds = {
     if(typeof(payload) === "undefined" || !payload) {payload={};}
     if(typeof(keys)    === "undefined" || !keys)    {keys=[];}
     
-    /* authenticate on demand */
-    if(!this.oauth){this.createOAuth2Service();}
+    /* authenticate the client on demand */
+    if(!this.oauth) {this.createOAuth2Service();}
     
     if (this.oauth.hasAccess()) {
       
