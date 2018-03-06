@@ -17,6 +17,7 @@ var gds = {
   baseUrl: BASEURL + "/v1/projects/" + PROJECT_ID + ":",
   oauth: false,
 
+  /* it creates the oAuth2 service */
   createOAuth2Service: function() {
     this.oauth = OAuth2.createService("Datastore")
     .setTokenUrl("https://www.googleapis.com/oauth2/v4/token")
@@ -26,7 +27,8 @@ var gds = {
     .setIssuer(CLIENT_EMAIL)
     .setScope(SCOPE);
   },
-  
+
+  /* API request, see https://cloud.google.com/datastore/docs/reference/data/rest/ */
   request: function(method, payload, keys) {
     
     /* the parameters should neither be undefined nor false */
@@ -96,7 +98,7 @@ var gds = {
     }
   },
   
-  /* aliases for function calls */
+  /* method wrappers, for calling the API methods by their name */
   runQuery:         function(payload, keys) {        this.request("runQuery", payload, keys);},
   allocateIds:      function(payload, keys) {     this.request("allocateIds", payload, keys);},
   beginTransaction: function(payload, keys) {this.request("beginTransaction", payload, keys);},
