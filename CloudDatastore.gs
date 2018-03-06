@@ -14,10 +14,11 @@ var BASEURL      = "https://datastore.googleapis.com";
 /* API wrapper */
 var gds = {
   
-  service: false,
+  baseUrl: BASEURL + "/v1/projects/" + PROJECT_ID + ":",
+  oauth: false,
 
-  createService: function() {
-    this.service = OAuth2.createService("Datastore")
+  createOAuth2Service: function() {
+    this.oauth = OAuth2.createService("Datastore")
     .setTokenUrl("https://www.googleapis.com/oauth2/v4/token")
     .setPropertyStore(PropertiesService.getScriptProperties())
     // .setSubject(Session.getActiveUser().getEmail())
@@ -27,8 +28,8 @@ var gds = {
   },
   
   request: function(method, payload, keys) {
-    if(!this.service){this.createService();}
-    if (this.service.hasAccess()) {
+    if(!this.oauth){this.createOAuth2Service();}
+    if (this.oauth.hasAccess()) {
       
       /* the parameters should neither be undefined nor false */
       if(typeof(payload) === "undefined" || !payload) {payload={};}
@@ -36,7 +37,7 @@ var gds = {
       
       var options = {
         method: "POST",
-        headers: {Authorization: 'Bearer ' + this.service.getAccessToken()},
+        headers: {Authorization: 'Bearer ' + this.oauth.getAccessToken()},
         contentType: "application/json",
         payload: JSON.stringify(payload),
         muteHttpExceptions: true,
@@ -47,7 +48,7 @@ var gds = {
         case "runQuery": case "allocateIds": case "beginTransaction": case "commit": case "lookup": case "reserveIds": case "rollback": break;
         default: Logger.log("invalid api method: "+ method); return false;
       }
-      var response = UrlFetchApp.fetch(BASEURL + "/v1/projects/" + PROJECT_ID + ":" + method, options);
+      var response = UrlFetchApp.fetch(this.baseUrl + method, options);
       var result = JSON.parse(response.getContentText());
       var headers = response.getHeaders();
       
@@ -73,13 +74,12 @@ var gds = {
   
   /* resets the authorization state */
   resetAuth: function() {
-    this.service.reset();
+    this.oauth.reset();
   }
 };
 
-/* makes a request to the Cloud Datastore API. */
+/* it queries the Cloud Datastore */
 function run() {
-  
     gds.runQuery({
       query: {kind:[{name: "strings"}]}
     });
