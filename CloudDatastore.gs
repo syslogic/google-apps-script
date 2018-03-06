@@ -28,12 +28,15 @@ var gds = {
   },
   
   request: function(method, payload, keys) {
+    
+    /* the parameters should neither be undefined nor false */
+    if(typeof(payload) === "undefined" || !payload) {payload={};}
+    if(typeof(keys)    === "undefined" || !keys)    {keys=[];}
+    
+    /* authenticate on demand */
     if(!this.oauth){this.createOAuth2Service();}
+    
     if (this.oauth.hasAccess()) {
-      
-      /* the parameters should neither be undefined nor false */
-      if(typeof(payload) === "undefined" || !payload) {payload={};}
-      if(typeof(keys)    === "undefined" || !keys)    {keys=[];}
       
       var options = {
         method: "POST",
@@ -44,13 +47,43 @@ var gds = {
         keys: keys
       };
       
+      /*  */
       switch(method){
-        case "runQuery": case "allocateIds": case "beginTransaction": case "commit": case "lookup": case "reserveIds": case "rollback": break;
-        default: Logger.log("invalid api method: "+ method); return false;
+        case "runQuery":
+          Logger.log(method + ": " + options.payload);
+          break;
+          
+        case "allocateIds":
+          Logger.log(method + ": " + options.payload);
+          break;
+          
+        case "beginTransaction":
+          Logger.log(method + ": " + options.payload);
+          break;
+          
+        case "commit":
+          Logger.log(method + ": " + options.payload);
+          break;
+          
+        case "lookup":
+          Logger.log(method + ": " + options.payload);
+          break;
+          
+        case "reserveIds":
+          Logger.log(method + ": " + options.payload);
+          break;
+          
+        case "rollback":
+          Logger.log(method + ": " + options.payload);
+          break;
+          
+        default:
+          Logger.log("invalid api method: "+ method);
+          return false;
       }
+      
       var response = UrlFetchApp.fetch(this.baseUrl + method, options);
       var result = JSON.parse(response.getContentText());
-      var headers = response.getHeaders();
       
       for(i=0; i < result.batch['entityResults'].length; i++){
         Logger.log(JSON.stringify(result.batch['entityResults'][i]));
