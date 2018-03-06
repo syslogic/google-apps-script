@@ -5,3 +5,4 @@ it depends on OAuth2 for Apps Script: `1B7FSrk5Zi6L1rSxxTDgDEUsPzlukDsi4KGuTMors
 
 also see: https://stackoverflow.com/questions/49112189/49113976#49113976
 
+and https://cloud.google.com/datastore/docs/reference/data/rest/
