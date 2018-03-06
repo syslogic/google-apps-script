@@ -145,15 +145,15 @@ var gds = {
   },
     
   /* method aliases, which require a payload object */
-  runQuery:         function(payload) {this.request("runQuery", payload, false);},
+  runQuery:         function(payload) {this.request("runQuery",         payload, false);},
   beginTransaction: function(payload) {this.request("beginTransaction", payload, false);},
-  commit:           function(payload) {this.request("commit", payload, false);},
-  rollback:         function(payload) {this.request("rollback", payload, false);},
+  commit:           function(payload) {this.request("commit",           payload, false);},
+  rollback:         function(payload) {this.request("rollback",         payload, false);},
   
   /* method aliases, which require an array of keys */
   allocateIds:      function(keys) {this.request("allocateIds", false, keys);},
-  reserveIds:       function(keys) {this.request("reserveIds", false, keys);},
-  lookup:           function(keys) {this.request("lookup", false, keys);},
+  reserveIds:       function(keys) {this.request("reserveIds",  false, keys);},
+  lookup:           function(keys) {this.request("lookup",      false, keys);},
   
   /* resets the authorization state */
   resetAuth: function() {
