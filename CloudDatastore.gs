@@ -68,3 +68,8 @@ function commit(payload)           {request("commit", payload);}
 function lookup(payload)           {request("lookup", payload);}
 function reserveIds(payload)       {request("reserveIds", payload);}
 function rollback(payload)         {request("rollback", payload);}
+
+/* resets the authorization state, so that it can be re-tested. */
+function reset() {
+  service.reset();
+}
