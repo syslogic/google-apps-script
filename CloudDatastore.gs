@@ -4,10 +4,10 @@
    see: https://stackoverflow.com/questions/49112189/49113976#49113976
 */
 
-var PROJECT_ID   = "";
-var CLIENT_ID    = "";
+var PROJECT_ID   = "...";
+var CLIENT_ID    = "...";
 var CLIENT_EMAIL = "...-compute@developer.gserviceaccount.com";
-var PRIVATE_KEY  = "";
+var PRIVATE_KEY  = "...";
 var SCOPE        = "https://www.googleapis.com/auth/datastore";
 var BASEURL      = "https://datastore.googleapis.com";
 
@@ -30,8 +30,9 @@ var gds = {
     if(!this.service){this.createService();}
     if (this.service.hasAccess()) {
       
-      if(typeof(payload) === "undefined"){payload={};}
-      if(typeof(keys) === "undefined"){keys=[];}
+      /* the parameters should neither be undefined nor false */
+      if(typeof(payload) === "undefined" || !payload) {payload={};}
+      if(typeof(keys)    === "undefined" || !keys)    {keys=[];}
       
       var options = {
         method: "POST",
