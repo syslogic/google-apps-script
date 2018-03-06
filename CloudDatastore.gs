@@ -56,7 +56,7 @@ var gds = {
           break;
           
         case "allocateIds":
-          Logger.log(method + " > " + options.payload);
+          Logger.log(method + " > " + options.keys.join(", "));
           break;
           
         case "beginTransaction":
