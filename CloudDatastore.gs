@@ -56,7 +56,6 @@ var gds = {
    * projects.operations.get
    * Gets the latest state of a long-running operation.
    * Clients can use this method to poll the operation result at intervals as recommended by the API service.
-   * @param payload ~ filter, pageSize, pageToken
   **/
   get: function() {this.operations("get", false);},
   
@@ -177,7 +176,7 @@ var gds = {
           return false;
       }
       
-      var response = UrlFetchApp.fetch(this.baseUrlOp + method, options);
+      var response = UrlFetchApp.fetch(this.baseUrlOp, options);
       var result = JSON.parse(response.getContentText());
       this.handleResult(method, result);
       return result;
