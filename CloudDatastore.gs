@@ -324,24 +324,22 @@ function run() {
   /* obtain an instance  */
   var ds = gds.getInstance();
 
-  /* it adds 10 entities of kind `strings` */
-  for(i=0; i < 10; i++){
-    ds.beginTransaction({});
-    ds.commit({
-      "transaction": ds.transactionId,
-      "mutations": {
-        "insert": {
-          "key": {
-            "partitionId": {"projectId": ds.projectId},
-            "path": [{"kind": "strings"}]
-          },
-          "properties":{
-            "name": {"stringValue": ds.randomString()}
-          }
+  /* it adds a entity of kind `strings` */
+  ds.beginTransaction({});
+  ds.commit({
+    "transaction": ds.transactionId,
+    "mutations": {
+      "insert": {
+        "key": {
+          "partitionId": {"projectId": ds.projectId},
+          "path": [{"kind": "strings"}]
+        },
+        "properties":{
+          "name": {"stringValue": ds.randomString()}
         }
       }
-    });
-  }
+    }
+  });
   
   /* it queries for entities of kind `strings` */
   ds.runQuery({query: {kind:[{name: "strings"}]}});
