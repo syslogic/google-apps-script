@@ -18,7 +18,7 @@ var CONFIG = "serviceaccount.json";
 /* API wrapper */
 var gds = {
   
-  debug:       true,
+  debug:       false,
   scopes:      "https://www.googleapis.com/auth/datastore https://www.googleapis.com/auth/drive",
   baseUrl:     "https://datastore.googleapis.com/v1",
   url:         false,
@@ -75,14 +75,14 @@ var gds = {
      * Gets the latest state of a long-running operation.
      * Clients can use this method to poll the operation result at intervals as recommended by the API service.
     **/
-    get: function() {this.request("get", false);},
+    get: function() {return this.request("get", false);},
     
     /**
      * Lists operations that match the specified filter in the request.
      * If the server doesn't support this method, it returns UNIMPLEMENTED.
      * @param payload ~ filter, pageSize, pageToken
     **/
-    list: function(payload) {this.request("list", payload);},
+    list: function(payload) {return this.request("list", payload);},
     
     /**
      * Starts asynchronous cancellation on a long-running operation.
@@ -93,57 +93,57 @@ var gds = {
      * the operation is not deleted; instead, it becomes an operation with an Operation.error value
      * with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     **/
-    cancel: function() {this.request("cancel", false);},
+    cancel: function() {return this.request("cancel", false);},
   
     /**
      * Deletes a long-running operation. This method indicates that the client is no longer interested
      * in the operation result. It does not cancel the operation. If the server doesn't support this method,
      * it returns google.rpc.Code.UNIMPLEMENTED.
     **/
-    remove: function() {this.request("delete", false);}
+    remove: function() {return this.request("delete", false);}
   },
   
   /**
    * Queries for entities.
    * @param payload ~ partitionId, readOptions, query, gqlQuery
   **/
-  runQuery: function(payload) {this.request("runQuery", payload, false);},
+  runQuery: function(payload) {return this.request("runQuery", payload, false);},
   
   /**
    * Begins a new transaction.
    * @param payload ~ transactionOptions
   **/
-  beginTransaction: function(payload) {this.request("beginTransaction", payload, false);},
+  beginTransaction: function(payload) {return this.request("beginTransaction", payload, false);},
   
   /**
    * Commits a transaction, optionally creating, deleting or modifying some entities.
    * @param payload ~ mode, mutations, transaction
   **/
-  commit: function(payload) {this.request("commit", payload, false);},
+  commit: function(payload) {return this.request("commit", payload, false);},
   
   /**
    * Rolls back a transaction.
    * @param payload ~ transaction
   **/
-  rollback: function(payload) {this.request("rollback", payload, false);},
+  rollback: function(payload) {return this.request("rollback", payload, false);},
   
   /**
    * Allocates IDs for the given keys, which is useful for referencing an entity before it is inserted.
    * @param keys
   **/
-  allocateIds: function(keys) {this.request("allocateIds", false, keys);},
+  allocateIds: function(keys) {return this.request("allocateIds", false, keys);},
   
   /**
    * Prevents the supplied keys' IDs from being auto-allocated by Cloud Datastore.
    * @param keys
   **/
-  reserveIds: function(keys) {this.request("reserveIds", false, keys);},
+  reserveIds: function(keys) {return this.request("reserveIds", false, keys);},
   
   /**
    * Looks up entities by key.
    * @param keys
   **/
-  lookup: function(keys) {this.request("lookup", false, keys);},
+  lookup: function(keys) {return this.request("lookup", false, keys);},
    
   /* API wrapper */
   request: function(method, payload, keys) {
@@ -182,7 +182,6 @@ var gds = {
           
         /* projects.beginTransaction */
         case "beginTransaction":
-
           this.log(method + " > " + options.payload);
           break;
         
@@ -358,7 +357,7 @@ var gds = {
   
   /* queries for entities by their kind */
   queryByKind: function(name) {
-    this.runQuery({query: {kind:[{name: name}]}});
+    return this.runQuery({query: {kind:[{name: name}]}});
   },
   
   /* deletes an entity by it's kind and id */
@@ -380,7 +379,12 @@ var gds = {
 /* Test: it queries for entities of kind `strings` */
 function queryByKind() {
   var ds = gds.getInstance();
-  ds.queryByKind("strings");
+  var result = ds.queryByKind("strings");
+  if(typeof(result.batch) !== "undefined") {
+    for(i=0; i < result.batch['entityResults'].length; i++) {
+      Logger.log(JSON.stringify(result.batch['entityResults'][i]));
+    }
+  }
 }
 
 /* Test: deletes an entity of kind `strings` with id */
