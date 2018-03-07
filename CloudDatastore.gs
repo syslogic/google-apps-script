@@ -6,7 +6,7 @@
    @see https://cloud.google.com/datastore/docs/reference/data/rest/
 */
 
-/* Service Account configuration JSON on Google Drive (your filename may vary) */
+/* Service Account configuration file on Google Drive (your filename may vary) */
 var JSON_CONFIG = "serviceaccount.json";
 
 /* API wrapper */
