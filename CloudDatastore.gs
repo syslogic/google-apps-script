@@ -113,9 +113,7 @@ var gds = {
    * Commits a transaction, optionally creating, deleting or modifying some entities.
    * @param payload ~ mode, mutations, transaction
   **/
-  commit: function(payload) {
-    this.request("commit", payload, false);
-  },
+  commit: function(payload) {this.request("commit", payload, false);},
   
   /**
    * Rolls back a transaction.
