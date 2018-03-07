@@ -354,7 +354,7 @@ var gds = {
     this.oauth.reset();
   },
   
-  /* queries for entities by kind */
+  /* queries for entities by their kind */
   selectByKind: function(name) {
     this.runQuery({query: {kind:[{name: name}]}});
   }
@@ -377,7 +377,7 @@ function insertEntity() {
   /* obtain an instance  */
   var ds = gds.getInstance();
 
-  /* it adds an entity of kind `strings` */
+  /* adds an entity of kind `strings` */
   ds.beginTransaction({});
   ds.commit({
     "transaction": ds.transactionId,
@@ -401,7 +401,7 @@ function updateEntity() {
   /* obtain an instance  */
   var ds = gds.getInstance();
 
-  /* it adds an entity of kind `strings` */
+  /* updates an entity of kind `strings` */
   ds.beginTransaction({});
   ds.commit({
     "transaction": ds.transactionId,
