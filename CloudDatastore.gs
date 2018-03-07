@@ -341,7 +341,7 @@ var gds = {
   }
 };
 
-/* Cloud Datastore */
+/* Usage Example */
 function run() {
 
   /* obtain an instance  */
@@ -353,13 +353,13 @@ function run() {
     "transaction": ds.transactionId,
     "mutations": {
       "insert": {
-        "properties":{
-          "name": {"stringValue": "asdfasdf"}
-        },
         "key": {
           "partitionId": {"projectId": ds.projectId},
           "path": [{"kind": "strings"}]
-        } 
+        },
+        "properties":{
+          "name": {"stringValue": "asdf"}
+        },
       }
     }
   });
