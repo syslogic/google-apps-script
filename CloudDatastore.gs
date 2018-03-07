@@ -140,51 +140,19 @@ var gds = {
    * @param keys
   **/
   lookup: function(keys) {this.request("lookup", false, keys);},
-  
-  /* sets the url per method */
-  setUrl: function(method){
-      switch(method) {
-         case "get": this.url = this.baseUrl + "/{name=projects/" + this.projectId + "/operations/*}"; break;
-        case "list": this.url = this.baseUrl + "/{name=projects/" + this.projectId + "}/operations"; break;
-        case "cancel": this.url = this.baseUrl + "/{name=projects/" + this.projectId + "/operations/*}:cancel"; break;
-        case "delete": this.url = this.baseUrl + "/{name=projects/" + this.projectId + "/operations/*}"; break;
-        case "runQuery": case "beginTransaction": case "commit": case "rollback": case "allocateIds": case "reserveIds": case "lookup": this.url = this.baseUrl + "/projects/" + this.projectId + ":" + method; break;
-        default: this.log("invalid api method: "+ method); break;
-      }
-  },
-  
-  /* gets the options per method */
-  getOptions: function(method) {
-    if (this.oauth.hasAccess()) {
-      var options = {
-        headers: {Authorization: 'Bearer ' + this.oauth.getAccessToken()},
-        contentType: "application/json",
-        muteHttpExceptions: true
-      };
-      switch(method) {
-        case "get": case "list": options.method = "GET"; break;
-        case "cancel": case "runQuery": case "beginTransaction": case "commit": case "rollback": case "allocateIds": case "reserveIds": case "lookup": options.method = "POST"; break;
-        case "delete": options.method = "DELETE"; break;
-        default: this.log("invalid api method: "+ method); break;
-      }
-      return options;
-    }
-  },
-  
+   
   /* API wrapper */
   request: function(method, payload, keys) {
-    
-    this.setUrl(method);
-    
+
     if (this.oauth.hasAccess()) {
-    
-      /* the individual api methods are being handled here */
+
+      /* configuring the request */
       var options = this.getOptions(method);
-      
-      /* the parameters should neither be undefined nor false */
       if(payload !== false) {options.payload = JSON.stringify(payload);}
       if(keys !== false) {options.keys = keys;}
+      this.setUrl(method);
       
+      /* the individual api methods are being handled here */
       switch(method) {
         
         /* projects.operations.get */
@@ -252,6 +220,7 @@ var gds = {
           return false;
       }
       
+      /* execute request */
       var response = UrlFetchApp.fetch(this.url, options);
       var result = JSON.parse(response.getContentText());
       this.handleResult(method, result);
@@ -263,9 +232,10 @@ var gds = {
     }
   },
   
-  /* handles the responses */
+  /* handles the result */
   handleResult: function(method, result) {
     
+    /* the individual api responses are being handled here */
     switch(method){
         
       /* projects.operations.get */
@@ -336,6 +306,36 @@ var gds = {
     }
   },
   
+  /* sets the url per method */
+  setUrl: function(method){
+      switch(method) {
+         case "get": this.url = this.baseUrl + "/{name=projects/" + this.projectId + "/operations/*}"; break;
+        case "list": this.url = this.baseUrl + "/{name=projects/" + this.projectId + "}/operations"; break;
+        case "cancel": this.url = this.baseUrl + "/{name=projects/" + this.projectId + "/operations/*}:cancel"; break;
+        case "delete": this.url = this.baseUrl + "/{name=projects/" + this.projectId + "/operations/*}"; break;
+        case "runQuery": case "beginTransaction": case "commit": case "rollback": case "allocateIds": case "reserveIds": case "lookup": this.url = this.baseUrl + "/projects/" + this.projectId + ":" + method; break;
+        default: this.log("invalid api method: "+ method); break;
+      }
+  },
+  
+  /* gets the options per method */
+  getOptions: function(method) {
+    if (this.oauth.hasAccess()) {
+      var options = {
+        headers: {Authorization: 'Bearer ' + this.oauth.getAccessToken()},
+        contentType: "application/json",
+        muteHttpExceptions: true
+      };
+      switch(method) {
+        case "get": case "list": options.method = "GET"; break;
+        case "cancel": case "runQuery": case "beginTransaction": case "commit": case "rollback": case "allocateIds": case "reserveIds": case "lookup": options.method = "POST"; break;
+        case "delete": options.method = "DELETE"; break;
+        default: this.log("invalid api method: "+ method); break;
+      }
+      return options;
+    }
+  },
+  
   /* logs while this.debug is true */
   log: function(message){
     if(this.debug) {Logger.log(message);}
@@ -353,23 +353,23 @@ var gds = {
   },
   
   /* queries for entities by their kind */
-  selectByKind: function(name) {
+  queryByKind: function(name) {
     this.runQuery({query: {kind:[{name: name}]}});
   }
 };
 
 
-/* Test: selects Entities by their Kind */
-function selectByKind() {
+/* Test: queries entities by their kind */
+function queryByKind() {
 
   /* obtain an instance  */
   var ds = gds.getInstance();
   
   /* it queries for entities of kind `strings` */
-  ds.selectByKind("strings");
+  ds.queryByKind("strings");
 }
 
-/* Test: inserts an Entity */
+/* Test: inserts an entity */
 function insertEntity() {
 
   /* obtain an instance  */
