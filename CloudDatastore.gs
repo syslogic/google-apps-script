@@ -12,19 +12,18 @@ var JSON_CONFIG = "serviceaccount.json";
 /* API wrapper */
 var gds = {
   
-  scopes: "https://www.googleapis.com/auth/datastore https://www.googleapis.com/auth/drive",
-
-  projectId:   false,
+  debug:       true,
+  scopes:      "https://www.googleapis.com/auth/datastore https://www.googleapis.com/auth/drive",
   baseUrl:     "https://datastore.googleapis.com/v1",
   url:         false,
   
+  transactionId: false,
+  
+  projectId:   false,
   clientId:    false,
   clientEmail: false,
   privateKey:  false,
   oauth:       false,
-  debug:       true,
-  
-  transactionId: false,
   
   /* returns an instance */
   getInstance: function() {
@@ -308,12 +307,11 @@ var gds = {
   },
   
   randomString: function() {
-    var result = false;
-    while (!result) {
-      result = Math.random().toString(36).substr(2, 5);
-    }
+    var result = "";
+    while (result == "") {result = Math.random().toString(36).substr(2, 5);}
     return result;
   },
+  
   /* resets the authorization state */
   resetAuth: function() {
     this.oauth.reset();
