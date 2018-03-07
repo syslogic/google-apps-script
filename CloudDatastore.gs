@@ -360,11 +360,16 @@ var gds = {
   /* resets the authorization state */
   resetAuth: function() {
     this.oauth.reset();
+  },
+  
+  /* queries for entities by kind */
+  selectByKind: function(name) {
+    this.runQuery({query: {kind:[{name: name}]}});
   }
 };
 
-/* Usage Example */
-function run() {
+/* Example: inserts an Entity */
+function insertEntity() {
 
   /* obtain an instance  */
   var ds = gds.getInstance();
@@ -385,7 +390,14 @@ function run() {
       }
     }
   });
+}
+
+/* Example: selects Entities by the Kind */
+function selectByKind() {
+
+  /* obtain an instance  */
+  var ds = gds.getInstance();
   
   /* it queries for entities of kind `strings` */
-  ds.runQuery({query: {kind:[{name: "strings"}]}});
+  ds.selectByKind("strings");
 }
