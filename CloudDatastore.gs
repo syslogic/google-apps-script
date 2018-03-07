@@ -1,6 +1,6 @@
 /*
    Apps Script: Accessing Google Cloud Datastore under a Service Account
-   It load the configuration from Google Drive, assuming it has been uploaded there.
+   It loads the configuration from Google Drive, assuming it has been uploaded there.
    @author Martin Zeitler, https://plus.google.com/106963082057954766426
    @depends on `1B7FSrk5Zi6L1rSxxTDgDEUsPzlukDsi4KGuTMorsTQHhGBzBkMun4iDF`
    @see https://github.com/googlesamples/apps-script-oauth2
