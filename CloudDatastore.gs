@@ -66,6 +66,19 @@ var gds = {
   op: {
     
     /**
+     * Gets the latest state of a long-running operation.
+     * Clients can use this method to poll the operation result at intervals as recommended by the API service.
+    **/
+    get: function() {this.request("get", false);},
+    
+    /**
+     * Lists operations that match the specified filter in the request.
+     * If the server doesn't support this method, it returns UNIMPLEMENTED.
+     * @param payload ~ filter, pageSize, pageToken
+    **/
+    list: function(payload) {this.request("list", payload);},
+    
+    /**
      * Starts asynchronous cancellation on a long-running operation.
      * The server makes a best effort to cancel the operation, but success is not guaranteed.
      * If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
@@ -81,20 +94,7 @@ var gds = {
      * in the operation result. It does not cancel the operation. If the server doesn't support this method,
      * it returns google.rpc.Code.UNIMPLEMENTED.
     **/
-    remove: function() {this.request("delete", false);},
-    
-    /**
-     * Gets the latest state of a long-running operation.
-     * Clients can use this method to poll the operation result at intervals as recommended by the API service.
-    **/
-    get: function() {this.request("get", false);},
-    
-    /**
-     * Lists operations that match the specified filter in the request.
-     * If the server doesn't support this method, it returns UNIMPLEMENTED.
-     * @param payload ~ filter, pageSize, pageToken
-    **/
-    list: function(payload) {this.request("list", payload);}
+    remove: function() {this.request("delete", false);}
   },
   
   /**
@@ -141,59 +141,91 @@ var gds = {
   **/
   lookup: function(keys) {this.request("lookup", false, keys);},
   
-  /* API wrapper for projects */
-  request: function(method, payload, keys) {
-    
+  /* sets the url per method */
+  setUrl: function(method){
+      switch(method) {
+         case "get": this.url = this.baseUrl + "/{name=projects/" + this.projectId + "/operations/*}"; break;
+        case "list": this.url = this.baseUrl + "/{name=projects/" + this.projectId + "}/operations"; break;
+        case "cancel": this.url = this.baseUrl + "/{name=projects/" + this.projectId + "/operations/*}:cancel"; break;
+        case "delete": this.url = this.baseUrl + "/{name=projects/" + this.projectId + "/operations/*}"; break;
+        case "runQuery": case "beginTransaction": case "commit": case "rollback": case "allocateIds": case "reserveIds": case "lookup":
+          this.url = this.baseUrl + "/projects/" + this.projectId + ":" + method;
+          break;
+        default:
+          this.log("invalid api method: "+ method);
+          break;
+      }
+  },
+  
+  /* gets the options per method */
+  getOptions: function(method) {
     if (this.oauth.hasAccess()) {
-      
       var options = {
         headers: {Authorization: 'Bearer ' + this.oauth.getAccessToken()},
         contentType: "application/json",
         muteHttpExceptions: true
       };
+      switch(method) {
+        case    "get": options.method = "GET"; break;
+        case   "list": options.method = "GET"; break;
+        case "cancel": options.method = "POST"; break;
+        case "delete": options.method = "DELETE"; break;
+        case "runQuery": case "beginTransaction": case "commit": case "rollback": case "allocateIds": case "reserveIds": case "lookup":
+          options.method = "POST";
+          break;
+        default:
+          this.log("invalid api method: "+ method);
+          break;
+      }
+      return options;
+    }
+  },
+  
+  /* API wrapper */
+  request: function(method, payload, keys) {
     
+    this.setUrl(method);
+    
+    if (this.oauth.hasAccess()) {
+    
+      /* the individual api methods are being handled here */
+      var options = this.getOptions(method);
+      
       /* the parameters should neither be undefined nor false */
       if(payload !== false) {options.payload = JSON.stringify(payload);}
       if(keys !== false) {options.keys = keys;}
       
-      /* the individual api methods are being handled here */
       switch(method) {
         
+        /* projects.operations.get */
+        case "get":
+          break;
+        
+        /* projects.operations.list */
+        case "list":
+          break;
+        
+        /* projects.operations.cancel */
         case "cancel":
-          this.url = this.baseUrl + "/{name=projects/" + this.projectId + "/operations/*}:cancel";
-          options.method = "POST";
+          break;
+        
+        /* projects.operations.delete */
+        case "delete":
+          break;
+        
+        /* projects.runQuery */
+        case "runQuery":
+          this.log(method + " > " + options.payload);
           break;
           
-        case "delete":
-          this.url = this.baseUrl + "/{name=projects/" + this.projectId + "/operations/*}";
-          options.method = "DELETE";
-          break;
-        
-        case "get":
-          this.url = this.baseUrl + "/{name=projects/" + this.projectId + "/operations/*}";
-          options.method = "GET";
-          break;
-        
-        case "list":
-          this.url = this.baseUrl + "/{name=projects/" + this.projectId + "}/operations";
-          options.method = "GET";
-          break;
-        
-        case "runQuery":
-          this.url = this.baseUrl + "/projects/" + this.projectId + ":" + method;
-          options.method = "POST";
-          this.log(method + " > " + options.payload);
-          break;
-        
+        /* projects.beginTransaction */
         case "beginTransaction":
-          this.url = this.baseUrl + "/projects/" + this.projectId + ":" + method;
-          options.method = "POST";
+
           this.log(method + " > " + options.payload);
           break;
         
+        /* projects.commit */
         case "commit":
-          this.url = this.baseUrl + "/projects/" + this.projectId + ":" + method;
-          options.method = "POST";
           if(! this.transactionId){
             this.log("cannot commit() while there is no ongoing transaction.");
             return false;
@@ -203,9 +235,8 @@ var gds = {
           }
           break;
         
+        /* projects.rollback */
         case "rollback":
-          this.url = this.baseUrl + "/projects/" + this.projectId + ":" + method;
-          options.method = "POST";
           if(! this.transactionId){
             this.log("cannot rollback() while there is no ongoing transaction.");
             return false;
@@ -213,13 +244,16 @@ var gds = {
             payload.transaction = this.transactionId;
             this.log(method + " > " + options.payload);
           }
-          break;         
+          break;
         
+        /* projects.allocateIds */
         case "allocateIds":
+        
+        /* projects.reserveIds */
         case "reserveIds":
+        
+        /* projects.lookup */
         case "lookup":
-          this.url = this.baseUrl + "/projects/" + this.projectId + ":" + method;
-          options.method = "POST";
           this.log(method + " > " + options.keys.join(", "));
           break;
         
@@ -244,6 +278,23 @@ var gds = {
     
     switch(method){
         
+      /* projects.operations.get */
+      case "get":
+        break;
+        
+      /* projects.operations.list */
+      case "list":
+        break;
+        
+      /* projects.operations.cancel */
+      case "cancel":
+        break;
+        
+      /* projects.operations.delete */
+      case "delete":
+        break;
+        
+      /* projects.runQuery */
       case "runQuery":
         if(typeof(result.batch) !== "undefined") {
           for(i=0; i < result.batch['entityResults'].length; i++) {
@@ -252,6 +303,7 @@ var gds = {
         }
         break;
       
+      /* projects.beginTransaction */
       case "beginTransaction":
         if(typeof(result.transaction) !== "undefined" && result.transaction != "") {
           this.log(method + " > " + result.transaction);
@@ -259,6 +311,7 @@ var gds = {
         }
         break;
       
+      /* projects.commit */
       case "commit":
         if(typeof(result.error) !== "undefined") {
           this.log(method + " > error " + result.error.code + ": " + result.error.message);
@@ -275,28 +328,20 @@ var gds = {
         }
         break;
       
+      /* projects.rollback */
       case "rollback":
         break;
       
+      /* projects.allocateIds */
       case "allocateIds":
         break;
       
+      /* projects.reserveIds */
       case "reserveIds":
         break;
       
+      /* projects.lookup */
       case "lookup":
-        break;
-      
-      case "cancel":
-        break;
-        
-      case "delete":
-        break;
-      
-      case "get":
-        break;
-      
-      case "list":
         break;
     }
   },
