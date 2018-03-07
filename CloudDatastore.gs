@@ -45,7 +45,6 @@ var gds = {
       var file = it.next();
       var data = JSON.parse(file.getAs("application/json").getDataAsString());
       this.projectId   = data.project_id;
-      this.baseUrl     = "https://datastore.googleapis.com/v1/projects/" + this.projectId + ":";
       this.privateKey  = data.private_key;
       this.clientEmail = data.client_email;
       this.clientId    = data.client_id;
