@@ -360,7 +360,18 @@ var gds = {
   }
 };
 
-/* Example: inserts an Entity */
+
+/* Test: selects Entities by their Kind */
+function selectByKind() {
+
+  /* obtain an instance  */
+  var ds = gds.getInstance();
+  
+  /* it queries for entities of kind `strings` */
+  ds.selectByKind("strings");
+}
+
+/* Test: inserts an Entity */
 function insertEntity() {
 
   /* obtain an instance  */
@@ -384,12 +395,26 @@ function insertEntity() {
   });
 }
 
-/* Example: selects Entities by the Kind */
-function selectByKind() {
+/* Test: updates an Entity */
+function updateEntity() {
 
   /* obtain an instance  */
   var ds = gds.getInstance();
-  
-  /* it queries for entities of kind `strings` */
-  ds.selectByKind("strings");
+
+  /* it adds an entity of kind `strings` */
+  ds.beginTransaction({});
+  ds.commit({
+    "transaction": ds.transactionId,
+    "mutations": {
+      "update": {
+        "key": {
+          "partitionId": {"projectId": ds.projectId},
+          "path": [{"kind": "strings", "id": "4957293397409792"}]
+        },
+        "properties":{
+          "name": {"stringValue": ds.randomString()}
+        }
+      }
+    }
+  });
 }
