@@ -160,11 +160,9 @@ var gds = {
         muteHttpExceptions: true
       };
       switch(method) {
-        case    "get": options.method = "GET"; break;
-        case   "list": options.method = "GET"; break;
-        case "cancel": options.method = "POST"; break;
+        case "get": case "list": options.method = "GET"; break;
+        case "cancel": case "runQuery": case "beginTransaction": case "commit": case "rollback": case "allocateIds": case "reserveIds": case "lookup": options.method = "POST"; break;
         case "delete": options.method = "DELETE"; break;
-        case "runQuery": case "beginTransaction": case "commit": case "rollback": case "allocateIds": case "reserveIds": case "lookup": options.method = "POST"; break;
         default: this.log("invalid api method: "+ method); break;
       }
       return options;
