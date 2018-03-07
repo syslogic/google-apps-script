@@ -11,7 +11,7 @@
 /*
    Service Account configuration file on Google Drive
    download from https://console.cloud.google.com/project/_/iam-admin
-   then upload to drive.google.com - and adjust the filename below.
+   then upload to https://drive.google.com - and adjust the filename below.
 */
 var CONFIG = "serviceaccount.json";
 
