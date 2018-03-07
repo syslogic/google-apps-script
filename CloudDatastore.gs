@@ -355,20 +355,20 @@ var gds = {
     this.oauth.reset();
   },
   
-  /* queries for entities by their kind */
+  /* queries for entities by the name of their kind */
   queryByKind: function(name) {
     return this.runQuery({query: {kind:[{name: name}]}});
   },
   
-  /* deletes an entity by it's kind and id */
-  deleteByKindAndId: function(kind, id) {
+  /* deletes an entity by the name of it's kind and it's id */
+  deleteByKindAndId: function(name, id) {
     this.beginTransaction({});
     this.commit({
       "transaction": this.transactionId,
       "mutations": {
         "delete": {
           "partitionId": {"projectId": this.projectId},
-          "path": [{"kind": kind, "id": id}]
+          "path": [{"kind": name, "id": id}]
         }
       }
     });
