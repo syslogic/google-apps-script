@@ -375,7 +375,7 @@ function insertEntity() {
   /* obtain an instance  */
   var ds = gds.getInstance();
 
-  /* adds an entity of kind `strings` */
+  /* it inserts an entity of kind `strings` with a random string as property `name` */
   ds.beginTransaction({});
   ds.commit({
     "transaction": ds.transactionId,
@@ -399,7 +399,8 @@ function updateEntity() {
   /* obtain an instance  */
   var ds = gds.getInstance();
 
-  /* updates an entity of kind `strings` */
+  /* it selects of an entity of kind `strings` by it's id and updates it's property `name` with a random string */
+  var id = "4957293397409792";
   ds.beginTransaction({});
   ds.commit({
     "transaction": ds.transactionId,
@@ -407,7 +408,7 @@ function updateEntity() {
       "update": {
         "key": {
           "partitionId": {"projectId": ds.projectId},
-          "path": [{"kind": "strings", "id": "4957293397409792"}]
+          "path": [{"kind": "strings", "id": id}]
         },
         "properties":{
           "name": {"stringValue": ds.randomString()}
