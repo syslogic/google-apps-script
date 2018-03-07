@@ -158,22 +158,22 @@ var gds = {
       switch(method) {
         
         case "cancel":
-          this.baseUrlOp = "https://datastore.googleapis.com/v1/{name=projects/*/operations/*}:cancel";
+          this.baseUrlOp = "https://datastore.googleapis.com/v1/{name=projects/" + this.projectId + "/operations/*}:cancel";
           options.method = "POST";
           break;
           
         case "delete":
-          this.baseUrlOp = "https://datastore.googleapis.com/v1/{name=projects/*/operations/*}";
+          this.baseUrlOp = "https://datastore.googleapis.com/v1/{name=projects/" + this.projectId + "/operations/*}";
           options.method = "DELETE";
           break;
         
         case "get":
-          this.baseUrlOp = "https://datastore.googleapis.com/v1/{name=projects/*/operations/*}";
+          this.baseUrlOp = "https://datastore.googleapis.com/v1/{name=projects/" + this.projectId + "/operations/*}";
           options.method = "GET";
           break;
         
         case "list":
-          this.baseUrlOp = "https://datastore.googleapis.com/v1/{name=projects/*}/operations";
+          this.baseUrlOp = "https://datastore.googleapis.com/v1/{name=projects/" + this.projectId + "}/operations";
           options.method = "GET";
           break;
         
