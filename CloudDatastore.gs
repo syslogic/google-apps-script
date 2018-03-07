@@ -37,7 +37,7 @@ var gds = {
     return this;
   },
   
-  /* loads the config json from Google Drive */
+  /* loads the configuration file from Google Drive */
   getConfig: function(filename) {
     var it = DriveApp.getFilesByName(filename);
     while (it.hasNext()) {
