@@ -44,7 +44,7 @@ var gds = {
       var data = JSON.parse(file.getAs("application/json").getDataAsString());
       this.projectId   = data.project_id;
       this.baseUrl     = "https://datastore.googleapis.com/v1/projects/" + this.projectId + ":";
-      this.baseUrlOp   = "https://datastore.googleapis.com/v1/{name=projects/*}/operations";
+      this.baseUrlOp   = "https://datastore.googleapis.com/v1/{name=projects/" + this.projectId + "}/operations";
       this.privateKey  = data.private_key;
       this.clientEmail = data.client_email;
       this.clientId    = data.client_id;
@@ -67,7 +67,6 @@ var gds = {
   op: {
     
     /**
-     * projects.operations.cancel
      * Starts asynchronous cancellation on a long-running operation.
      * The server makes a best effort to cancel the operation, but success is not guaranteed.
      * If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
@@ -79,7 +78,6 @@ var gds = {
     cancel: function() {this.operations("cancel", false);},
   
     /**
-     * projects.operations.delete
      * Deletes a long-running operation. This method indicates that the client is no longer interested
      * in the operation result. It does not cancel the operation. If the server doesn't support this method,
      * it returns google.rpc.Code.UNIMPLEMENTED.
@@ -87,36 +85,32 @@ var gds = {
     remove: function() {this.operations("delete", false);},
     
     /**
-     * projects.operations.get
      * Gets the latest state of a long-running operation.
      * Clients can use this method to poll the operation result at intervals as recommended by the API service.
     **/
     get: function() {this.operations("get", false);},
     
     /**
-     * projects.operations.list
-     * Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+     * Lists operations that match the specified filter in the request.
+     * If the server doesn't support this method, it returns UNIMPLEMENTED.
      * @param payload ~ filter, pageSize, pageToken
     **/
     list: function(payload) {this.operations("list", payload);}
   },
   
   /**
-   * projects.runQuery
    * Queries for entities.
    * @param payload ~ partitionId, readOptions, query, gqlQuery
   **/
   runQuery: function(payload) {this.request("runQuery", payload, false);},
   
   /**
-   * projects.beginTransaction
    * Begins a new transaction.
    * @param payload ~ transactionOptions
   **/
   beginTransaction: function(payload) {this.request("beginTransaction", payload, false);},
   
   /**
-   * projects.commit
    * Commits a transaction, optionally creating, deleting or modifying some entities.
    * @param payload ~ mode, mutations, transaction
   **/
@@ -125,28 +119,24 @@ var gds = {
   },
   
   /**
-   * projects.rollback
    * Rolls back a transaction.
    * @param payload ~ transaction
   **/
   rollback: function(payload) {this.request("rollback", payload, false);},
   
   /**
-   * projects.allocateIds
    * Allocates IDs for the given keys, which is useful for referencing an entity before it is inserted.
    * @param keys
   **/
   allocateIds: function(keys) {this.request("allocateIds", false, keys);},
   
   /**
-   * projects.reserveIds
    * Prevents the supplied keys' IDs from being auto-allocated by Cloud Datastore.
    * @param keys
   **/
   reserveIds: function(keys) {this.request("reserveIds", false, keys);},
   
   /**
-   * projects.lookup
    * Looks up entities by key.
    * @param keys
   **/
@@ -359,8 +349,8 @@ function run() {
   /* obtain an instance  */
   var ds = gds.getInstance();
 
-  /* it adds 100 entities of kind `strings` */
-  for(i=0; i < 100; i++){
+  /* it adds 10 entities of kind `strings` */
+  for(i=0; i < 10; i++){
     ds.beginTransaction({});
     ds.commit({
       "transaction": ds.transactionId,
