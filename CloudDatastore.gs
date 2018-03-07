@@ -344,16 +344,18 @@ var gds = {
 /* Cloud Datastore */
 function run() {
 
-  /* in order not to load the configuration over and over */
+  /* obtain an instance  */
   var ds = gds.getInstance();
 
-  /* adds an entity of kind `strings` */
+  /* add an entity of kind `strings` */
   ds.beginTransaction({});
   ds.commit({
     "transaction": ds.transactionId,
     "mutations": {
       "insert": {
-        // "properties": [{name: 'name', value: "asdf"}],
+        "properties":{
+          "name": {"stringValue": "asdfasdf"}
+        },
         "key": {
           "partitionId": {"projectId": ds.projectId},
           "path": [{"kind": "strings"}]
@@ -362,6 +364,6 @@ function run() {
     }
   });
   
-  /* queries for entities of kind `strings` */
+  /* query for entities of kind `strings` */
   ds.runQuery({query: {kind:[{name: "strings"}]}});
 }
