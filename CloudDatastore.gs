@@ -15,7 +15,9 @@ var gds = {
   scopes: "https://www.googleapis.com/auth/datastore https://www.googleapis.com/auth/drive",
 
   projectId:   false,
-  baseUrl:     false,
+  baseUrl:     "https://datastore.googleapis.com/v1",
+  url:         false,
+  
   clientId:    false,
   clientEmail: false,
   privateKey:  false,
@@ -44,7 +46,6 @@ var gds = {
       var data = JSON.parse(file.getAs("application/json").getDataAsString());
       this.projectId   = data.project_id;
       this.baseUrl     = "https://datastore.googleapis.com/v1/projects/" + this.projectId + ":";
-      this.baseUrlOp   = "https://datastore.googleapis.com/v1/{name=projects/" + this.projectId + "}/operations";
       this.privateKey  = data.private_key;
       this.clientEmail = data.client_email;
       this.clientId    = data.client_id;
@@ -75,27 +76,27 @@ var gds = {
      * the operation is not deleted; instead, it becomes an operation with an Operation.error value
      * with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     **/
-    cancel: function() {this.operations("cancel", false);},
+    cancel: function() {this.request("cancel", false);},
   
     /**
      * Deletes a long-running operation. This method indicates that the client is no longer interested
      * in the operation result. It does not cancel the operation. If the server doesn't support this method,
      * it returns google.rpc.Code.UNIMPLEMENTED.
     **/
-    remove: function() {this.operations("delete", false);},
+    remove: function() {this.request("delete", false);},
     
     /**
      * Gets the latest state of a long-running operation.
      * Clients can use this method to poll the operation result at intervals as recommended by the API service.
     **/
-    get: function() {this.operations("get", false);},
+    get: function() {this.request("get", false);},
     
     /**
      * Lists operations that match the specified filter in the request.
      * If the server doesn't support this method, it returns UNIMPLEMENTED.
      * @param payload ~ filter, pageSize, pageToken
     **/
-    list: function(payload) {this.operations("list", payload);}
+    list: function(payload) {this.request("list", payload);}
   },
   
   /**
@@ -142,65 +143,12 @@ var gds = {
   **/
   lookup: function(keys) {this.request("lookup", false, keys);},
   
-  
-  /* API wrapper for projects.operations */
-  operation: function(method, payload) {
-    
-    if (this.oauth.hasAccess()) {
-    
-      var options = {
-        headers: {Authorization: 'Bearer ' + this.oauth.getAccessToken()},
-        contentType: "application/json",
-        muteHttpExceptions: true
-      };
-      
-      /* the individual api methods are being handled here */
-      switch(method) {
-        
-        case "cancel":
-          this.baseUrlOp = "https://datastore.googleapis.com/v1/{name=projects/" + this.projectId + "/operations/*}:cancel";
-          options.method = "POST";
-          break;
-          
-        case "delete":
-          this.baseUrlOp = "https://datastore.googleapis.com/v1/{name=projects/" + this.projectId + "/operations/*}";
-          options.method = "DELETE";
-          break;
-        
-        case "get":
-          this.baseUrlOp = "https://datastore.googleapis.com/v1/{name=projects/" + this.projectId + "/operations/*}";
-          options.method = "GET";
-          break;
-        
-        case "list":
-          this.baseUrlOp = "https://datastore.googleapis.com/v1/{name=projects/" + this.projectId + "}/operations";
-          options.method = "GET";
-          break;
-        
-        default:
-          this.log("invalid api method: "+ method);
-          return false;
-      }
-      
-      this.log(method + " > ");
-      var response = UrlFetchApp.fetch(this.baseUrlOp, options);
-      var result = JSON.parse(response.getContentText());
-      this.handleResult(method, result);
-      return result;
-      
-    } else {
-      this.log(this.oauth.getLastError());
-      return false;
-    }
-  },
-  
   /* API wrapper for projects */
   request: function(method, payload, keys) {
     
     if (this.oauth.hasAccess()) {
       
       var options = {
-        method: "POST",
         headers: {Authorization: 'Bearer ' + this.oauth.getAccessToken()},
         contentType: "application/json",
         muteHttpExceptions: true
@@ -213,15 +161,41 @@ var gds = {
       /* the individual api methods are being handled here */
       switch(method) {
         
+        case "cancel":
+          this.url = this.baseUrl + "/{name=projects/" + this.projectId + "/operations/*}:cancel";
+          options.method = "POST";
+          break;
+          
+        case "delete":
+          this.url = this.baseUrl + "/{name=projects/" + this.projectId + "/operations/*}";
+          options.method = "DELETE";
+          break;
+        
+        case "get":
+          this.url = this.baseUrl + "/{name=projects/" + this.projectId + "/operations/*}";
+          options.method = "GET";
+          break;
+        
+        case "list":
+          this.url = this.baseUrl + "/{name=projects/" + this.projectId + "}/operations";
+          options.method = "GET";
+          break;
+        
         case "runQuery":
+          this.url = this.baseUrl + "/projects/" + this.projectId + ":" + method;
+          options.method = "POST";
           this.log(method + " > " + options.payload);
           break;
         
         case "beginTransaction":
+          this.url = this.baseUrl + "/projects/" + this.projectId + ":" + method;
+          options.method = "POST";
           this.log(method + " > " + options.payload);
           break;
         
         case "commit":
+          this.url = this.baseUrl + "/projects/" + this.projectId + ":" + method;
+          options.method = "POST";
           if(! this.transactionId){
             this.log("cannot commit() while there is no ongoing transaction.");
             return false;
@@ -232,6 +206,8 @@ var gds = {
           break;
         
         case "rollback":
+          this.url = this.baseUrl + "/projects/" + this.projectId + ":" + method;
+          options.method = "POST";
           if(! this.transactionId){
             this.log("cannot rollback() while there is no ongoing transaction.");
             return false;
@@ -244,6 +220,8 @@ var gds = {
         case "allocateIds":
         case "reserveIds":
         case "lookup":
+          this.url = this.baseUrl + "/projects/" + this.projectId + ":" + method;
+          options.method = "POST";
           this.log(method + " > " + options.keys.join(", "));
           break;
         
@@ -252,7 +230,7 @@ var gds = {
           return false;
       }
       
-      var response = UrlFetchApp.fetch(this.baseUrl + method, options);
+      var response = UrlFetchApp.fetch(this.url, options);
       var result = JSON.parse(response.getContentText());
       this.handleResult(method, result);
       return result;
