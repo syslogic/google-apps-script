@@ -4,6 +4,7 @@
    @depends on `1B7FSrk5Zi6L1rSxxTDgDEUsPzlukDsi4KGuTMorsTQHhGBzBkMun4iDF`
    @see https://stackoverflow.com/questions/49112189/49113976#49113976
    @see https://cloud.google.com/datastore/docs/reference/data/rest/
+   @see https://github.com/googlesamples/apps-script-oauth2
 */
 
 /* Service Account configuration file on Google Drive (your filename may vary) */
