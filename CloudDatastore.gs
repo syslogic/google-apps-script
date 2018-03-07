@@ -36,22 +36,53 @@ var gds = {
     return this;
   },
   
+  /* loads the config json from Google Drive */
+  getConfig: function(filename) {
+    var it = DriveApp.getFilesByName(filename);
+    while (it.hasNext()) {
+      var file = it.next();
+      var data = JSON.parse(file.getAs("application/json").getDataAsString());
+      this.projectId   = data.project_id;
+      this.baseUrl     = "https://datastore.googleapis.com/v1/projects/" + this.projectId + ":";
+      this.baseUrlOp   = "https://datastore.googleapis.com/v1/{name=projects/*}/operations";
+      this.privateKey  = data.private_key;
+      this.clientEmail = data.client_email;
+      this.clientId    = data.client_id;
+      continue;
+    }
+  },
+  
+  /* creates the oAuth2 service */
+  createService: function() {
+    this.oauth = OAuth2.createService("Datastore")
+    .setTokenUrl("https://www.googleapis.com/oauth2/v4/token")
+    .setPropertyStore(PropertiesService.getScriptProperties())
+    // .setSubject(Session.getActiveUser().getEmail())
+    .setPrivateKey(this.privateKey)
+    .setIssuer(this.clientEmail)
+    .setScope(this.scopes);
+  },
+  
   /* projects.operations */
   op: {
     
     /**
      * projects.operations.cancel
-     * Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed.
-     * If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check
-     * whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted;
-     * instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+     * Starts asynchronous cancellation on a long-running operation.
+     * The server makes a best effort to cancel the operation, but success is not guaranteed.
+     * If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+     * Clients can use Operations.GetOperation or other methods to check whether the cancellation
+     * succeeded or whether the operation completed despite cancellation. On successful cancellation,
+     * the operation is not deleted; instead, it becomes an operation with an Operation.error value
+     * with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     **/
     cancel: function() {this.operations("cancel", false);},
   
     /**
      * projects.operations.delete
-     * Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result.
-     * It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+     * Deletes a long-running operation. This method indicates that the client is no longer interested
+     * in the operation result. It does not cancel the operation. If the server doesn't support this method,
+     * it returns google.rpc.Code.UNIMPLEMENTED.
     **/
     remove: function() {this.operations("delete", false);},
     
@@ -121,35 +152,8 @@ var gds = {
   **/
   lookup: function(keys) {this.request("lookup", false, keys);},
   
-  /* loads the config json from Google Drive */
-  getConfig: function(filename) {
-    var it = DriveApp.getFilesByName(filename);
-    while (it.hasNext()) {
-      var file = it.next();
-      var data = JSON.parse(file.getAs("application/json").getDataAsString());
-      this.baseUrl     = "https://datastore.googleapis.com/v1/projects/" + data.project_id + ":";
-      this.baseUrlOp   = "https://datastore.googleapis.com/v1/{name=projects/*}/operations";
-      this.projectId   = data.project_id;
-      this.privateKey  = data.private_key;
-      this.clientEmail = data.client_email;
-      this.clientId    = data.client_id;
-      continue;
-    }
-  },
   
-  /* creates the oAuth2 service */
-  createService: function() {
-    this.oauth = OAuth2.createService("Datastore")
-    .setTokenUrl("https://www.googleapis.com/oauth2/v4/token")
-    .setPropertyStore(PropertiesService.getScriptProperties())
-    // .setSubject(Session.getActiveUser().getEmail())
-    .setPrivateKey(this.privateKey)
-    .setIssuer(this.clientEmail)
-    .setScope(this.scopes);
-  },
-
-  
-  /* API wrapper, GET projects.operations */
+  /* API wrapper for projects.operations */
   operation: function(method, payload) {
     
     if (this.oauth.hasAccess()) {
@@ -200,7 +204,7 @@ var gds = {
     }
   },
   
-  /* API wrapper, POST projects */
+  /* API wrapper for projects */
   request: function(method, payload, keys) {
     
     if (this.oauth.hasAccess()) {
@@ -217,28 +221,29 @@ var gds = {
       if(keys !== false) {options.keys = keys;}
       
       /* the individual api methods are being handled here */
-      switch(method){
+      switch(method) {
+        
         case "runQuery":
           this.log(method + " > " + options.payload);
           break;
-          
+        
         case "beginTransaction":
           this.log(method + " > " + options.payload);
           break;
-          
+        
         case "commit":
           if(! this.transactionId){
-            this.log("call beginTransaction() before attempting to commit().");
+            this.log("cannot commit() while there is no ongoing transaction.");
             return false;
           } else {
             payload.transaction = this.transactionId;
             this.log(method + " > " + options.payload);
           }
           break;
-          
+        
         case "rollback":
           if(! this.transactionId){
-            this.log("cannot rollback() without a transaction.");
+            this.log("cannot rollback() while there is no ongoing transaction.");
             return false;
           } else {
             payload.transaction = this.transactionId;
@@ -251,7 +256,7 @@ var gds = {
         case "lookup":
           this.log(method + " > " + options.keys.join(", "));
           break;
-          
+        
         default:
           this.log("invalid api method: "+ method);
           return false;
@@ -335,6 +340,13 @@ var gds = {
     if(this.debug) {Logger.log(message);}
   },
   
+  randomString: function() {
+    var result = false;
+    while (!result) {
+      result = Math.random().toString(36).substr(2, 5);
+    }
+    return result;
+  },
   /* resets the authorization state */
   resetAuth: function() {
     this.oauth.reset();
@@ -347,23 +359,25 @@ function run() {
   /* obtain an instance  */
   var ds = gds.getInstance();
 
-  /* add an entity of kind `strings` */
-  ds.beginTransaction({});
-  ds.commit({
-    "transaction": ds.transactionId,
-    "mutations": {
-      "insert": {
-        "key": {
-          "partitionId": {"projectId": ds.projectId},
-          "path": [{"kind": "strings"}]
-        },
-        "properties":{
-          "name": {"stringValue": "asdf"}
-        },
+  /* it adds 100 entities of kind `strings` */
+  for(i=0; i < 100; i++){
+    ds.beginTransaction({});
+    ds.commit({
+      "transaction": ds.transactionId,
+      "mutations": {
+        "insert": {
+          "key": {
+            "partitionId": {"projectId": ds.projectId},
+            "path": [{"kind": "strings"}]
+          },
+          "properties":{
+            "name": {"stringValue": ds.randomString()}
+          }
+        }
       }
-    }
-  });
+    });
+  }
   
-  /* query for entities of kind `strings` */
+  /* it queries for entities of kind `strings` */
   ds.runQuery({query: {kind:[{name: "strings"}]}});
 }
