@@ -36,35 +36,39 @@ var gds = {
     return this;
   },
   
-  /**
-   * projects.operations.cancel
-   * Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed.
-   * If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check
-   * whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted;
-   * instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
-  **/
-  cancel: function() {this.operations("cancel", false);},
+  /* projects.operations */
+  op: {
+    
+    /**
+     * projects.operations.cancel
+     * Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed.
+     * If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check
+     * whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted;
+     * instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+    **/
+    cancel: function() {this.operations("cancel", false);},
   
-  /**
-   * projects.operations.delete
-   * Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result.
-   * It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
-  **/
-  remove: function() {this.operations("delete", false);},
-  
-  /**
-   * projects.operations.get
-   * Gets the latest state of a long-running operation.
-   * Clients can use this method to poll the operation result at intervals as recommended by the API service.
-  **/
-  get: function() {this.operations("get", false);},
-  
-  /**
-   * projects.operations.list
-   * Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
-   * @param payload ~ filter, pageSize, pageToken
-  **/
-  list: function(payload) {this.operations("list", payload);},
+    /**
+     * projects.operations.delete
+     * Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result.
+     * It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+    **/
+    remove: function() {this.operations("delete", false);},
+    
+    /**
+     * projects.operations.get
+     * Gets the latest state of a long-running operation.
+     * Clients can use this method to poll the operation result at intervals as recommended by the API service.
+    **/
+    get: function() {this.operations("get", false);},
+    
+    /**
+     * projects.operations.list
+     * Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+     * @param payload ~ filter, pageSize, pageToken
+    **/
+    list: function(payload) {this.operations("list", payload);}
+  },
   
   /**
    * projects.runQuery
