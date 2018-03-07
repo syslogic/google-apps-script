@@ -151,31 +151,40 @@ var gds = {
     if (this.oauth.hasAccess()) {
     
       var options = {
-        method: "GET",
         headers: {Authorization: 'Bearer ' + this.oauth.getAccessToken()},
         contentType: "application/json",
         muteHttpExceptions: true
       };
       
       /* the individual api methods are being handled here */
-      switch(method){
+      switch(method) {
+        
         case "cancel":
-          this.log(method + " > ");
+          this.baseUrlOp = "https://datastore.googleapis.com/v1/{name=projects/*/operations/*}:cancel";
+          options.method = "POST";
           break;
+          
         case "delete":
-          this.log(method + " > ");
+          this.baseUrlOp = "https://datastore.googleapis.com/v1/{name=projects/*/operations/*}";
+          options.method = "DELETE";
           break;
+        
         case "get":
-          this.log(method + " > ");
+          this.baseUrlOp = "https://datastore.googleapis.com/v1/{name=projects/*/operations/*}";
+          options.method = "GET";
           break;
+        
         case "list":
-          this.log(method + " > ");
+          this.baseUrlOp = "https://datastore.googleapis.com/v1/{name=projects/*}/operations";
+          options.method = "GET";
           break;
+        
         default:
           this.log("invalid api method: "+ method);
           return false;
       }
       
+      this.log(method + " > ");
       var response = UrlFetchApp.fetch(this.baseUrlOp, options);
       var result = JSON.parse(response.getContentText());
       this.handleResult(method, result);
