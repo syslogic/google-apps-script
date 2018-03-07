@@ -148,12 +148,8 @@ var gds = {
         case "list": this.url = this.baseUrl + "/{name=projects/" + this.projectId + "}/operations"; break;
         case "cancel": this.url = this.baseUrl + "/{name=projects/" + this.projectId + "/operations/*}:cancel"; break;
         case "delete": this.url = this.baseUrl + "/{name=projects/" + this.projectId + "/operations/*}"; break;
-        case "runQuery": case "beginTransaction": case "commit": case "rollback": case "allocateIds": case "reserveIds": case "lookup":
-          this.url = this.baseUrl + "/projects/" + this.projectId + ":" + method;
-          break;
-        default:
-          this.log("invalid api method: "+ method);
-          break;
+        case "runQuery": case "beginTransaction": case "commit": case "rollback": case "allocateIds": case "reserveIds": case "lookup": this.url = this.baseUrl + "/projects/" + this.projectId + ":" + method; break;
+        default: this.log("invalid api method: "+ method); break;
       }
   },
   
@@ -170,12 +166,8 @@ var gds = {
         case   "list": options.method = "GET"; break;
         case "cancel": options.method = "POST"; break;
         case "delete": options.method = "DELETE"; break;
-        case "runQuery": case "beginTransaction": case "commit": case "rollback": case "allocateIds": case "reserveIds": case "lookup":
-          options.method = "POST";
-          break;
-        default:
-          this.log("invalid api method: "+ method);
-          break;
+        case "runQuery": case "beginTransaction": case "commit": case "rollback": case "allocateIds": case "reserveIds": case "lookup": options.method = "POST"; break;
+        default: this.log("invalid api method: "+ method); break;
       }
       return options;
     }
