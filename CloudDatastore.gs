@@ -324,7 +324,7 @@ function run() {
   /* obtain an instance  */
   var ds = gds.getInstance();
 
-  /* it adds a entity of kind `strings` */
+  /* it adds an entity of kind `strings` */
   ds.beginTransaction({});
   ds.commit({
     "transaction": ds.transactionId,
