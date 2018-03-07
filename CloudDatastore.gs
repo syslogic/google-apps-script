@@ -69,7 +69,7 @@ var gds = {
   },
   
   /* projects.operations */
-  op: {
+  operations: {
     
     /**
      * Gets the latest state of a long-running operation.
@@ -359,27 +359,41 @@ var gds = {
   /* queries for entities by their kind */
   queryByKind: function(name) {
     this.runQuery({query: {kind:[{name: name}]}});
+  },
+  
+  /* deletes an entity by it's kind and id */
+  deleteByKindAndId: function(name, id) {
+    this.beginTransaction({});
+    this.commit({
+      "transaction": this.transactionId,
+      "mutations": {
+        "delete": {
+          "partitionId": {"projectId": this.projectId},
+          "path": [{"kind": name, "id": id}]
+        }
+      }
+    });
   }
 };
 
 
-/* Test: queries entities by their kind */
+/* Test: it queries for entities of kind `strings` */
 function queryByKind() {
-
-  /* obtain an instance  */
   var ds = gds.getInstance();
-  
-  /* it queries for entities of kind `strings` */
   ds.queryByKind("strings");
+}
+
+/* Test: deletes an entity of kind `strings` with id */
+function deleteByKindAndId() {
+  var ds = gds.getInstance();
+  ds.deleteByKindAndId("strings", "4957293397409792");
 }
 
 /* Test: inserts an entity */
 function insertEntity() {
 
-  /* obtain an instance  */
-  var ds = gds.getInstance();
-
   /* it inserts an entity of kind `strings` with a random string as property `name` */
+  var ds = gds.getInstance();
   ds.beginTransaction({});
   ds.commit({
     "transaction": ds.transactionId,
@@ -397,19 +411,42 @@ function insertEntity() {
   });
 }
 
-/* Test: updates an Entity */
+/* Test: updates an entity */
 function updateEntity() {
-
-  /* obtain an instance  */
-  var ds = gds.getInstance();
-
-  /* it selects of an entity of kind `strings` by it's id and updates it's property `name` with a random string */
+   
   var id = "4957293397409792";
+   
+  /* it selects of an entity of kind `strings` by it's id and updates it's property `name` with a random string */
+  var ds = gds.getInstance();
   ds.beginTransaction({});
   ds.commit({
     "transaction": ds.transactionId,
     "mutations": {
       "update": {
+        "key": {
+          "partitionId": {"projectId": ds.projectId},
+          "path": [{"kind": "strings", "id": id}]
+        },
+        "properties":{
+          "name": {"stringValue": ds.randomString()}
+        }
+      }
+    }
+  });
+}
+
+/* Test: upserts an entity */
+function upsertEntity() {
+   
+  var id = "4957293397409792";
+
+  /* it selects of an entity of kind `strings` by it's id and updates it's property `name` with a random string */
+  var ds = gds.getInstance();
+  ds.beginTransaction({});
+  ds.commit({
+    "transaction": ds.transactionId,
+    "mutations": {
+      "upsert": {
         "key": {
           "partitionId": {"projectId": ds.projectId},
           "path": [{"kind": "strings", "id": id}]
