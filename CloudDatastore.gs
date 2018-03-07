@@ -361,14 +361,14 @@ var gds = {
   },
   
   /* deletes an entity by it's kind and id */
-  deleteByKindAndId: function(name, id) {
+  deleteByKindAndId: function(kind, id) {
     this.beginTransaction({});
     this.commit({
       "transaction": this.transactionId,
       "mutations": {
         "delete": {
           "partitionId": {"projectId": this.projectId},
-          "path": [{"kind": name, "id": id}]
+          "path": [{"kind": kind, "id": id}]
         }
       }
     });
