@@ -10,18 +10,16 @@ var CONFIG = "serviceaccount.json";
 /* API wrapper */
 var gds = {
   
-  debug:       false,
-  scopes:      "https://www.googleapis.com/auth/datastore https://www.googleapis.com/auth/drive",
-  baseUrl:     "https://datastore.googleapis.com/v1",
-  url:         false,
-  
+  debug:         false,
+  scopes:        "https://www.googleapis.com/auth/datastore https://www.googleapis.com/auth/drive",
+  baseUrl:       "https://datastore.googleapis.com/v1",
   transactionId: false,
-  
-  projectId:   false,
-  clientId:    false,
-  clientEmail: false,
-  privateKey:  false,
-  oauth:       false,
+  url:           false,
+  oauth:         false,
+  projectId:     false,
+  clientId:      false,
+  clientEmail:   false,
+  privateKey:    false,
   
   /* returns an instance */
   getInstance: function() {
@@ -67,32 +65,33 @@ var gds = {
      * Gets the latest state of a long-running operation.
      * Clients can use this method to poll the operation result at intervals as recommended by the API service.
     **/
-    get: function() {return this.request("get", false);},
+    get: function() {return gds.request("get", false);},
     
     /**
      * Lists operations that match the specified filter in the request.
      * If the server doesn't support this method, it returns UNIMPLEMENTED.
      * @param payload ~ filter, pageSize, pageToken
     **/
-    list: function(payload) {return this.request("list", payload);},
+    list: function(payload) {return gds.request("list", payload);},
     
     /**
      * Starts asynchronous cancellation on a long-running operation.
      * The server makes a best effort to cancel the operation, but success is not guaranteed.
      * If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+     *
      * Clients can use Operations.GetOperation or other methods to check whether the cancellation
      * succeeded or whether the operation completed despite cancellation. On successful cancellation,
      * the operation is not deleted; instead, it becomes an operation with an Operation.error value
      * with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     **/
-    cancel: function() {return this.request("cancel", false);},
+    cancel: function() {return gds.request("cancel", false);},
   
     /**
      * Deletes a long-running operation. This method indicates that the client is no longer interested
      * in the operation result. It does not cancel the operation. If the server doesn't support this method,
      * it returns google.rpc.Code.UNIMPLEMENTED.
     **/
-    remove: function() {return this.request("delete", false);}
+    remove: function() {return gds.request("delete", false);}
   },
   
   /**
@@ -144,11 +143,11 @@ var gds = {
 
       /* configuring the request */
       var options = this.getOptions(method);
-      if(payload !== false) {options.payload = JSON.stringify(payload);}
-      if(keys !== false) {options.keys = keys;}
+      if(typeof(payload) != "undefined" && payload !== false) {options.payload = JSON.stringify(payload);}
+      if(typeof(keys) != "undefined" && keys !== false) {options.keys = keys;}
       this.setUrl(method);
       
-      /* the individual api methods are being handled here */
+      /* the individual api methods can be handled here */
       switch(method) {
         
         /* projects.operations.get */
@@ -215,10 +214,13 @@ var gds = {
           return false;
       }
       
-      /* execute request */
+      /* execute the request */
+      Logger.log(this.url);
       var response = UrlFetchApp.fetch(this.url, options);
       var result = JSON.parse(response.getContentText());
       this.handleResult(method, result);
+      
+      /* it returns the actual result of the request */
       return result;
       
     } else {
@@ -230,7 +232,7 @@ var gds = {
   /* handles the result */
   handleResult: function(method, result) {
     
-    /* the individual api responses are being handled here */
+    /* the individual api responses can be handled here */
     switch(method){
         
       /* projects.operations.get */
@@ -304,11 +306,13 @@ var gds = {
   /* sets the url per method */
   setUrl: function(method){
       switch(method) {
-         case "get": this.url = this.baseUrl + "/{name=projects/" + this.projectId + "/operations/*}"; break;
-        case "list": this.url = this.baseUrl + "/{name=projects/" + this.projectId + "}/operations"; break;
-        case "cancel": this.url = this.baseUrl + "/{name=projects/" + this.projectId + "/operations/*}:cancel"; break;
-        case "delete": this.url = this.baseUrl + "/{name=projects/" + this.projectId + "/operations/*}"; break;
-        case "runQuery": case "beginTransaction": case "commit": case "rollback": case "allocateIds": case "reserveIds": case "lookup": this.url = this.baseUrl + "/projects/" + this.projectId + ":" + method; break;
+        case "list":   this.url = this.baseUrl + "/projects/" + this.projectId + "/operations"; break;
+        case "get":    this.url = this.baseUrl + "/projects/" + this.projectId + "/operations/*"; break;
+        case "cancel": this.url = this.baseUrl + "/projects/" + this.projectId + "/operations/*:cancel"; break;
+        case "delete": this.url = this.baseUrl + "/projects/" + this.projectId + "/operations/*"; break;
+        case "runQuery": case "beginTransaction": case "commit": case "rollback": case "allocateIds":
+        case "reserveIds": case "lookup": this.url = this.baseUrl + "/projects/" + this.projectId + ":" + method;
+          break;
         default: this.log("invalid api method: "+ method); break;
       }
   },
@@ -377,6 +381,11 @@ function queryByKind() {
       Logger.log(JSON.stringify(result.batch['entityResults'][i]));
     }
   }
+}
+/* Test: list long-running poerations */
+function listOperations() {
+  var ds = gds.getInstance();
+  ds.operations.list();
 }
 
 /* Test: deletes an entity of kind `strings` with id */
