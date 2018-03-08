@@ -327,7 +327,7 @@ function deleteByKindAndId() {
   ds.deleteByKindAndId("strings", "4957293397409792");
 }
 
-/* Test: deletes an entity of kind `strings` */
+/* Test: allocates ids for an entity of kind `strings` (not yet working) */
 function allocateIds() {
   
   var ds = DatastoreApp.getInstance();
