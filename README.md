@@ -12,3 +12,11 @@ b) add the `OAuth2 for Apps Script` library: `1B7FSrk5Zi6L1rSxxTDgDEUsPzlukDsi4K
 c) upload the service account configuration file to your Google Drive.
 
 d) adjust the script according to the filename of the configuration file.
+
+## Reference
+
+@see https://github.com/googlesamples/apps-script-oauth2
+
+@see https://stackoverflow.com/questions/49112189/49113976#49113976
+
+@see https://cloud.google.com/datastore/docs/reference/data/rest/
