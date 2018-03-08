@@ -8,13 +8,14 @@
 var CONFIG = "serviceaccount.json";
 
 /* API wrapper */
-var gds = {
+var DatastoreApp = {
   
   debug:         false,
   scopes:        "https://www.googleapis.com/auth/datastore https://www.googleapis.com/auth/drive",
   baseUrl:       "https://datastore.googleapis.com/v1",
+  httpMethod:    "POST",
+  currentUrl:    false,
   transactionId: false,
-  url:           false,
   oauth:         false,
   projectId:     false,
   clientId:      false,
@@ -56,6 +57,24 @@ var gds = {
     .setPrivateKey(this.privateKey)
     .setIssuer(this.clientEmail)
     .setScope(this.scopes);
+  },
+  
+  /* gets the request options */
+  getOptions: function() {
+    if (this.oauth.hasAccess()) {
+      return {
+        headers: {Authorization: 'Bearer ' + this.oauth.getAccessToken()},
+        contentType: "application/json",
+        muteHttpExceptions: true,
+        method: this.httpMethod,
+        payload: {}
+      };
+    }
+  },
+  
+  /* sets the request url per method */
+  setCurrentUrl: function(method){
+      this.currentUrl = this.baseUrl + "/projects/" + this.projectId + ":" + method;
   },
   
   /**
@@ -106,10 +125,12 @@ var gds = {
     if (this.oauth.hasAccess()) {
 
       /* configuring the request */
+       this.setCurrentUrl(method);
       var options = this.getOptions();
-      if(typeof(payload) != "undefined" && payload !== false) {options.payload = JSON.stringify(payload);}
-      if(typeof(keys) != "undefined" && keys !== false) {options.keys = keys;}
-      this.setUrl(method);
+      
+      /* adding parameters */
+      if(typeof(payload) !== "undefined" && payload !== false) {options.payload = JSON.stringify(payload);}
+      if(typeof(keys)    !== "undefined" && keys    !== false) {options.keys    = JSON.stringify(keys);}
       
       /* the individual api methods can be handled here */
       switch(method) {
@@ -148,13 +169,17 @@ var gds = {
         
         /* projects.allocateIds */
         case "allocateIds":
+          this.log(method + " > " + options.keys);
+          break;
         
         /* projects.reserveIds */
         case "reserveIds":
-        
+          this.log(method + " > " + options.keys);
+          break;
+          
         /* projects.lookup */
         case "lookup":
-          this.log(method + " > " + options.keys.join(", "));
+          this.log(method + " > " + options.keys);
           break;
         
         default:
@@ -164,7 +189,7 @@ var gds = {
       
       /* execute the request */
       Logger.log(this.url);
-      var response = UrlFetchApp.fetch(this.url, options);
+      var response = UrlFetchApp.fetch(this.currentUrl, options);
       var result = JSON.parse(response.getContentText());
       this.handleResult(method, result);
       
@@ -179,12 +204,6 @@ var gds = {
   
   /* handles the result */
   handleResult: function(method, result) {
-    
-    /* always log these errors */
-    if(typeof(result.error) !== "undefined") {
-      Logger.log(method + " > error " + result.error.code + ": " + result.error.message);
-      return false;
-    }
     
     /* the individual api responses can be handled here */
     switch(method){
@@ -232,33 +251,24 @@ var gds = {
       
       /* projects.allocateIds */
       case "allocateIds":
+        this.transactionId = false;
         break;
       
       /* projects.reserveIds */
       case "reserveIds":
+        
         break;
       
       /* projects.lookup */
       case "lookup":
+        
         break;
     }
     
-  },
-  
-  /* sets the request url per method */
-  setUrl: function(method){
-      this.url = this.baseUrl + "/projects/" + this.projectId + ":" + method;
-  },
-  
-  /* gets the request options */
-  getOptions: function() {
-    if (this.oauth.hasAccess()) {
-      return {
-        method: "POST",
-        headers: {Authorization: 'Bearer ' + this.oauth.getAccessToken()},
-        contentType: "application/json",
-        muteHttpExceptions: true
-      };
+    /* always log remote errors */
+    if(typeof(result.error) !== "undefined") {
+      Logger.log(method + " > error " + result.error.code + ": " + result.error.message);
+      return false;
     }
   },
   
@@ -302,7 +312,7 @@ var gds = {
 
 /* Test: queries for entities of kind `strings` */
 function queryByKind() {
-  var ds = gds.getInstance();
+  var ds = DatastoreApp.getInstance();
   var result = ds.queryByKind("strings");
   if(typeof(result.batch) !== "undefined") {
     for(i=0; i < result.batch['entityResults'].length; i++) {
@@ -317,11 +327,21 @@ function deleteByKindAndId() {
   ds.deleteByKindAndId("strings", "4957293397409792");
 }
 
+/* Test: deletes an entity of kind `strings` */
+function allocateIds() {
+  
+  var ds = DatastoreApp.getInstance();
+  var result = ds.allocateIds({
+    "partitionId": {"projectId": ds.projectId},
+    "path": [{"kind": "strings"}]
+  });
+}
+
 /* Test: inserts an entity */
 function insertEntity() {
 
   /* inserts an entity of kind `strings` with a random string as property `name` */
-  var ds = gds.getInstance();
+  var ds = DatastoreApp.getInstance();
   ds.beginTransaction({});
   ds.commit({
     "transaction": ds.transactionId,
@@ -345,7 +365,7 @@ function updateEntity() {
   var id = "4957293397409792";
    
   /* it selects of an entity of kind `strings` by it's id and updates it's property `name` with a random string */
-  var ds = gds.getInstance();
+  var ds = DatastoreApp.getInstance();
   ds.beginTransaction({});
   ds.commit({
     "transaction": ds.transactionId,
@@ -369,7 +389,7 @@ function upsertEntity() {
   var id = "4957293397409792";
 
   /* it selects of an entity of kind `strings` by it's id and updates it's property `name` with a random string */
-  var ds = gds.getInstance();
+  var ds = DatastoreApp.getInstance();
   ds.beginTransaction({});
   ds.commit({
     "transaction": ds.transactionId,
