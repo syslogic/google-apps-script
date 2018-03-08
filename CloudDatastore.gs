@@ -4,11 +4,7 @@
    @bitcoin 19uySyXrtqQ71PFZWHb2PxBwtNitg2Dp6b
 */
 
-/*
-   Service Account configuration file on Google Drive
-   to be downloaded from https://console.cloud.google.com/project/_/iam-admin
-   and then uploaded to https://drive.google.com - the filename might vary.
-*/
+/* Service Account configuration file on Google Drive */
 var CONFIG = "serviceaccount.json";
 
 /* API wrapper */
