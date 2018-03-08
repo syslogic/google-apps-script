@@ -58,42 +58,6 @@ var gds = {
     .setScope(this.scopes);
   },
   
-  /* projects.operations */
-  operations: {
-    
-    /**
-     * Gets the latest state of a long-running operation.
-     * Clients can use this method to poll the operation result at intervals as recommended by the API service.
-    **/
-    get: function() {return gds.request("get", false);},
-    
-    /**
-     * Lists operations that match the specified filter in the request.
-     * If the server doesn't support this method, it returns UNIMPLEMENTED.
-     * @param payload ~ filter, pageSize, pageToken
-    **/
-    list: function(payload) {return gds.request("list", payload);},
-    
-    /**
-     * Starts asynchronous cancellation on a long-running operation.
-     * The server makes a best effort to cancel the operation, but success is not guaranteed.
-     * If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
-     *
-     * Clients can use Operations.GetOperation or other methods to check whether the cancellation
-     * succeeded or whether the operation completed despite cancellation. On successful cancellation,
-     * the operation is not deleted; instead, it becomes an operation with an Operation.error value
-     * with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
-    **/
-    cancel: function() {return gds.request("cancel", false);},
-  
-    /**
-     * Deletes a long-running operation. This method indicates that the client is no longer interested
-     * in the operation result. It does not cancel the operation. If the server doesn't support this method,
-     * it returns google.rpc.Code.UNIMPLEMENTED.
-    **/
-    remove: function() {return gds.request("delete", false);}
-  },
-  
   /**
    * Queries for entities.
    * @param payload ~ partitionId, readOptions, query, gqlQuery
@@ -142,29 +106,13 @@ var gds = {
     if (this.oauth.hasAccess()) {
 
       /* configuring the request */
-      var options = this.getOptions(method);
+      var options = this.getOptions();
       if(typeof(payload) != "undefined" && payload !== false) {options.payload = JSON.stringify(payload);}
       if(typeof(keys) != "undefined" && keys !== false) {options.keys = keys;}
       this.setUrl(method);
       
       /* the individual api methods can be handled here */
       switch(method) {
-        
-        /* projects.operations.get */
-        case "get":
-          break;
-        
-        /* projects.operations.list */
-        case "list":
-          break;
-        
-        /* projects.operations.cancel */
-        case "cancel":
-          break;
-        
-        /* projects.operations.delete */
-        case "delete":
-          break;
         
         /* projects.runQuery */
         case "runQuery":
@@ -235,22 +183,6 @@ var gds = {
     /* the individual api responses can be handled here */
     switch(method){
         
-      /* projects.operations.get */
-      case "get":
-        break;
-        
-      /* projects.operations.list */
-      case "list":
-        break;
-        
-      /* projects.operations.cancel */
-      case "cancel":
-        break;
-        
-      /* projects.operations.delete */
-      case "delete":
-        break;
-        
       /* projects.runQuery */
       case "runQuery":
         if(typeof(result.batch) !== "undefined") {
@@ -271,16 +203,15 @@ var gds = {
       /* projects.commit */
       case "commit":
         if(typeof(result.error) !== "undefined") {
-          this.log(method + " > error " + result.error.code + ": " + result.error.message);
-          this.transactionId = false;
+          
+          /* TODO: better roll back the tranction. */
+          // this.transactionId = false;
+          
         } else {
           if(typeof(result.mutationResults) !== "undefined") {
             for(i=0; i < result.mutationResults.length; i++) {
               this.log(JSON.stringify(result.mutationResults[i]));
             }
-          }
-          if(typeof(result.commitVersion) !== "undefined") {
-            this.log("commitVersion" + result.commitVersion);
           }
         }
         break;
@@ -301,37 +232,27 @@ var gds = {
       case "lookup":
         break;
     }
+    
+    /* always log these errors */
+    if(typeof(result.error) !== "undefined") {
+      Logger.log(method + " > error " + result.error.code + ": " + result.error.message);
+    }
   },
   
-  /* sets the url per method */
+  /* sets the request url per method */
   setUrl: function(method){
-      switch(method) {
-        case "list":   this.url = this.baseUrl + "/projects/" + this.projectId + "/operations"; break;
-        case "get":    this.url = this.baseUrl + "/projects/" + this.projectId + "/operations/*"; break;
-        case "cancel": this.url = this.baseUrl + "/projects/" + this.projectId + "/operations/*:cancel"; break;
-        case "delete": this.url = this.baseUrl + "/projects/" + this.projectId + "/operations/*"; break;
-        case "runQuery": case "beginTransaction": case "commit": case "rollback": case "allocateIds":
-        case "reserveIds": case "lookup": this.url = this.baseUrl + "/projects/" + this.projectId + ":" + method;
-          break;
-        default: this.log("invalid api method: "+ method); break;
-      }
+      this.url = this.baseUrl + "/projects/" + this.projectId + ":" + method;
   },
   
-  /* gets the options per method */
-  getOptions: function(method) {
+  /* gets the request options */
+  getOptions: function() {
     if (this.oauth.hasAccess()) {
-      var options = {
+      return {
+        method: "POST",
         headers: {Authorization: 'Bearer ' + this.oauth.getAccessToken()},
         contentType: "application/json",
         muteHttpExceptions: true
       };
-      switch(method) {
-        case "get": case "list": options.method = "GET"; break;
-        case "cancel": case "runQuery": case "beginTransaction": case "commit": case "rollback": case "allocateIds": case "reserveIds": case "lookup": options.method = "POST"; break;
-        case "delete": options.method = "DELETE"; break;
-        default: this.log("invalid api method: "+ method); break;
-      }
-      return options;
     }
   },
   
@@ -372,7 +293,8 @@ var gds = {
 };
 
 
-/* Test: it queries for entities of kind `strings` */
+
+/* Test: queries for entities of kind `strings` */
 function queryByKind() {
   var ds = gds.getInstance();
   var result = ds.queryByKind("strings");
@@ -381,11 +303,6 @@ function queryByKind() {
       Logger.log(JSON.stringify(result.batch['entityResults'][i]));
     }
   }
-}
-/* Test: list long-running poerations */
-function listOperations() {
-  var ds = gds.getInstance();
-  ds.operations.list();
 }
 
 /* Test: deletes an entity of kind `strings` with id */
@@ -397,7 +314,7 @@ function deleteByKindAndId() {
 /* Test: inserts an entity */
 function insertEntity() {
 
-  /* it inserts an entity of kind `strings` with a random string as property `name` */
+  /* inserts an entity of kind `strings` with a random string as property `name` */
   var ds = gds.getInstance();
   ds.beginTransaction({});
   ds.commit({
