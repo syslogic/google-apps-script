@@ -66,8 +66,7 @@ var DatastoreApp = {
         headers: {Authorization: 'Bearer ' + this.oauth.getAccessToken()},
         contentType: "application/json",
         muteHttpExceptions: true,
-        method: this.httpMethod,
-        payload: {}
+        method: this.httpMethod
       };
     }
   },
@@ -188,7 +187,6 @@ var DatastoreApp = {
       }
       
       /* execute the request */
-      Logger.log(this.url);
       var response = UrlFetchApp.fetch(this.currentUrl, options);
       var result = JSON.parse(response.getContentText());
       this.handleResult(method, result);
