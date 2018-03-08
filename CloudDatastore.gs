@@ -180,6 +180,12 @@ var gds = {
   /* handles the result */
   handleResult: function(method, result) {
     
+    /* always log these errors */
+    if(typeof(result.error) !== "undefined") {
+      Logger.log(method + " > error " + result.error.code + ": " + result.error.message);
+      return false;
+    }
+    
     /* the individual api responses can be handled here */
     switch(method){
         
@@ -204,10 +210,12 @@ var gds = {
       case "commit":
         if(typeof(result.error) !== "undefined") {
           
-          /* TODO: better roll back the tranction. */
-          // this.transactionId = false;
+          /* attempting to roll back the transaction in progress */
+          this.rollback({"transaction": this.transactionId});
           
         } else {
+          
+          /* log the mutationResults when this.debug is true. */
           if(typeof(result.mutationResults) !== "undefined") {
             for(i=0; i < result.mutationResults.length; i++) {
               this.log(JSON.stringify(result.mutationResults[i]));
@@ -218,6 +226,8 @@ var gds = {
       
       /* projects.rollback */
       case "rollback":
+        /* resetting transaction in progress */
+        this.transactionId = false;
         break;
       
       /* projects.allocateIds */
@@ -233,10 +243,6 @@ var gds = {
         break;
     }
     
-    /* always log these errors */
-    if(typeof(result.error) !== "undefined") {
-      Logger.log(method + " > error " + result.error.code + ": " + result.error.message);
-    }
   },
   
   /* sets the request url per method */
