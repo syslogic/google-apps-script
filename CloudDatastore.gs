@@ -249,7 +249,6 @@ var DatastoreApp = {
       
       /* projects.allocateIds */
       case "allocateIds":
-        this.transactionId = false;
         break;
       
       /* projects.reserveIds */
