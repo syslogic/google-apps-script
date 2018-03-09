@@ -5,13 +5,15 @@ It is written in Apps Script. and so far, it can select, insert, update and dele
 
 ## Setup
 
-a) add the script to https://script.google.com
+a) Add the script to https://script.google.com
 
-b) add the `OAuth2 for Apps Script` library: `1B7FSrk5Zi6L1rSxxTDgDEUsPzlukDsi4KGuTMorsTQHhGBzBkMun4iDF`.
+b) Add the `OAuth2 for Apps Script` library: `1B7FSrk5Zi6L1rSxxTDgDEUsPzlukDsi4KGuTMorsTQHhGBzBkMun4iDF`.
 
-c) upload the service account configuration file to your Google Drive (to be downloaded from https://console.cloud.google.com/project/_/iam-admin and then uploaded to https://drive.google.com).
-   
-d) adjust the script according to the filename of the configuration file.
+c) Upload the service account configuration file to your Google Drive (to be downloaded from https://console.cloud.google.com/project/_/iam-admin and then uploaded to https://drive.google.com).
+
+The service account needs to have the "Cloud Datatore User" role asigned.
+
+d) Adjust the script according to the filename of the configuration file.
 
 ## Reference
 
