@@ -220,9 +220,9 @@ var DatastoreApp = {
       /* projects.commit */
       case "commit":
         if(typeof(result.error) !== "undefined") {
-          
-          /* attempting to roll back the transaction in progress */
-          this.rollback({"transaction": this.transactionId});
+
+          /* resetting the transaction in progress */
+          this.transactionId = false;
           
         } else {
           
@@ -237,7 +237,7 @@ var DatastoreApp = {
       
       /* projects.rollback */
       case "rollback":
-        /* resetting transaction in progress */
+        /* resetting the transaction in progress */
         this.transactionId = false;
         break;
       
@@ -310,7 +310,7 @@ var DatastoreApp = {
   /* deletes an entity by the name of it's kind and it's id */
   deleteByKindAndId: function(name, id) {
     this.beginTransaction({});
-    this.commit({
+    return this.commit({
       "transaction": this.transactionId,
       "mutations": {
         "delete": {
