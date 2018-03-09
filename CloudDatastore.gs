@@ -402,11 +402,6 @@ function insertEntity() {
       }
     }
   });
-  
-  /* and then rolls back the transaction */
-  ds.rollback({
-    "transaction": ds.transactionId
-  });
 }
 
 /* Test: updates an entity */
