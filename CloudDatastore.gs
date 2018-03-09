@@ -202,6 +202,15 @@ var DatastoreApp = {
         
       /* projects.runQuery */
       case "runQuery":
+        
+        /* log the query */
+        if(typeof(result.query) !== "undefined") {
+          for(i=0; i < result.query.length; i++) {
+            this.log(JSON.stringify(result.query[i]));
+          }
+        }
+        
+        /* log the entityResults */
         if(typeof(result.batch) !== "undefined") {
           for(i=0; i < result.batch['entityResults'].length; i++) {
             this.log(JSON.stringify(result.batch['entityResults'][i]));
