@@ -106,7 +106,7 @@ var DatastoreApp = {
   
   /**
    * Allocates IDs for the given keys, which is useful for referencing an entity before it is inserted.
-   * @param payload ~
+   * @param payload ~ keys
   **/
   allocateIds: function(payload) {return this.request("allocateIds", payload);},
   
@@ -118,7 +118,7 @@ var DatastoreApp = {
   
   /**
    * Looks up entities by key.
-   * @param payload ~
+   * @param payload ~ readOptions, keys
   **/
   lookup: function(payload) {return this.request("lookup", payload);},
    
@@ -128,20 +128,19 @@ var DatastoreApp = {
     if (this.oauth.hasAccess()) {
 
       /* configuring the request */
-      this.setCurrentUrl(method);
       var options = this.getOptions(payload);
+      this.log(method + " > " + options.payload);
+      this.setCurrentUrl(method);
       
       /* the individual api methods can be handled here */
       switch(method) {
         
         /* projects.runQuery */
         case "runQuery":
-          this.log(method + " > " + options.payload);
           break;
           
         /* projects.beginTransaction */
         case "beginTransaction":
-          this.log(method + " > " + options.payload);
           break;
         
         /* projects.commit */
@@ -151,7 +150,6 @@ var DatastoreApp = {
             return false;
           } else {
             payload.transaction = this.transactionId;
-            this.log(method + " > " + options.payload);
           }
           break;
         
@@ -162,23 +160,19 @@ var DatastoreApp = {
             return false;
           } else {
             payload.transaction = this.transactionId;
-            this.log(method + " > " + options.payload);
           }
           break;
         
         /* projects.allocateIds */
         case "allocateIds":
-          this.log(method + " > " + options.keys);
           break;
         
         /* projects.reserveIds */
         case "reserveIds":
-          this.log(method + " > " + options.keys);
           break;
           
         /* projects.lookup */
         case "lookup":
-          this.log(method + " > " + options.keys);
           break;
         
         default:
@@ -232,7 +226,7 @@ var DatastoreApp = {
           
         } else {
           
-          /* log the mutationResults when this.debug is true. */
+          /* log the mutationResults, when debug is true */
           if(typeof(result.mutationResults) !== "undefined") {
             for(i=0; i < result.mutationResults.length; i++) {
               this.log(JSON.stringify(result.mutationResults[i]));
@@ -250,6 +244,12 @@ var DatastoreApp = {
       /* projects.allocateIds */
       case "allocateIds":
         
+        /* log allocated keys, when debug is true */
+        if(typeof(result.keys) !== "undefined") {
+            for(i=0; i < result.keys.length; i++) {
+              this.log(JSON.stringify(result.keys[i]));
+            }
+        }
         break;
       
       /* projects.reserveIds */
@@ -260,9 +260,14 @@ var DatastoreApp = {
       /* projects.lookup */
       case "lookup":
         
+        /* log found entities, when debug is true */
+        if(typeof(result.found) !== "undefined") {
+            for(i=0; i < result.found.length; i++) {
+              this.log(JSON.stringify(result.found[i]));
+            }
+        }
         break;
     }
-    
     
     if(typeof(result) !== "undefined") {
       
@@ -319,13 +324,14 @@ var DatastoreApp = {
 
 
 
-
 /* Test: allocates ids for an entity of kind `strings` (not yet working) */
 function allocateIds() {
   var ds = DatastoreApp.getInstance();
   var result = ds.allocateIds({
-    "partitionId": {"projectId": ds.projectId},
-    "path": [{"kind": "strings"}]
+    "keys": [{
+      "partitionId": {"projectId": ds.projectId},
+      "path": [{"kind": "strings"}]
+    }]
   });
 }
 
@@ -333,17 +339,29 @@ function allocateIds() {
 function reserveIds() {
   var ds = DatastoreApp.getInstance();
   var result = ds.reserveIds({
-    "partitionId": {"projectId": ds.projectId},
-    "path": [{"kind": "strings"}]
+    "keys": [{
+      "partitionId": {"projectId": ds.projectId},
+      "path": [{"kind": "strings", "id": "6750768661004291"}]
+    }, {
+      "partitionId": {"projectId": ds.projectId},
+      "path": [{"kind": "strings", "id": "6750768661004292"}]
+    }]
   });
+  if(typeof(result) !== "undefined") {
+    for(i=0; i < result.length; i++) {
+      ds.log(JSON.stringify(result[i]));
+    }
+  }
 }
 
 /* Test: looks up entities of kind `strings` */
 function lookup() {
   var ds = DatastoreApp.getInstance();
   var result = ds.lookup({
-    "partitionId": {"projectId": ds.projectId},
-    "path": [{"kind": "strings"}]
+    "keys": [{
+      "partitionId": {"projectId": ds.projectId},
+      "path": [{"kind": "strings", "id": TEST_ID}]
+    }]
   });
 }
 
@@ -384,7 +402,7 @@ function insertEntity() {
       }
     }
   });
-   
+  
   /* and then rolls back the transaction */
   ds.rollback({
     "transaction": ds.transactionId
