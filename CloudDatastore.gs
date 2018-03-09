@@ -324,7 +324,7 @@ var DatastoreApp = {
 
 
 
-/* Test: allocates ids for an entity of kind `strings` (not yet working) */
+/* Test: allocates ids for entities of kind `strings` */
 function allocateIds() {
   var ds = DatastoreApp.getInstance();
   var result = ds.allocateIds({
@@ -335,7 +335,7 @@ function allocateIds() {
   });
 }
 
-/* Test: allocates ids for an entity of kind `strings` (not yet working) */
+/* Test: reserves ids for entities of kind `strings` */
 function reserveIds() {
   var ds = DatastoreApp.getInstance();
   var result = ds.reserveIds({
@@ -354,7 +354,7 @@ function reserveIds() {
   }
 }
 
-/* Test: looks up entities of kind `strings` */
+/* Test: looks up entities of kind `strings` with id TEST_ID */
 function lookup() {
   var ds = DatastoreApp.getInstance();
   var result = ds.lookup({
