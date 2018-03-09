@@ -226,7 +226,7 @@ var DatastoreApp = {
           
         } else {
           
-          /* log the mutationResults, when debug is true */
+          /* log the mutationResults */
           if(typeof(result.mutationResults) !== "undefined") {
             for(i=0; i < result.mutationResults.length; i++) {
               this.log(JSON.stringify(result.mutationResults[i]));
@@ -244,7 +244,7 @@ var DatastoreApp = {
       /* projects.allocateIds */
       case "allocateIds":
         
-        /* log allocated keys, when debug is true */
+        /* log allocated keys */
         if(typeof(result.keys) !== "undefined") {
             for(i=0; i < result.keys.length; i++) {
               this.log(JSON.stringify(result.keys[i]));
@@ -252,29 +252,28 @@ var DatastoreApp = {
         }
         break;
       
-      /* projects.reserveIds */
+      /* projects.reserveIds (the response is empty by default) */
       case "reserveIds":
-        
         break;
       
       /* projects.lookup */
       case "lookup":
         
-        /* found entities */
+        /* log found entities */
         if(typeof(result.found) !== "undefined") {
             for(i=0; i < result.found.length; i++) {
               this.log(JSON.stringify(result.found[i]));
             }
         }
         
-        /* missing entities */
+        /* log missing entities */
         if(typeof(result.missing) !== "undefined") {
           for(i=0; i < result.missing.length; i++) {
             this.log(JSON.stringify(result.missing[i]));
           }
         }
         
-        /* deferred entities */
+        /* log deferred entities */
         if(typeof(result.deferred) !== "undefined") {
           for(i=0; i < result.deferred.length; i++) {
             this.log(JSON.stringify(result.deferred[i]));
@@ -290,7 +289,7 @@ var DatastoreApp = {
     
     /* always log remote errors */
     if(typeof(result.error) !== "undefined") {
-      Logger.log(method + " > error " + result.error.code + ": " + result.error.message);
+      Logger.log(method + " > ERROR " + result.error.code + ": " + result.error.message);
       return false;
     }
   },
@@ -313,18 +312,17 @@ var DatastoreApp = {
     this.oauth.reset();
   },
   
-  /* queries for entities by the name of their kind */
-  queryByKind: function(name) {
-    return this.runQuery({query: {kind:[{name: name}]}});
+  /**
+   * runs a simple GQL query
+   * @see https://cloud.google.com/datastore/docs/reference/data/rest/v1/projects/runQuery#GqlQuery
+  **/
+  runGql: function(gql) {
+    return this.runQuery({gqlQuery: {query_string: gql}});
   },
   
   /* queries for entities by the name of their kind */
-  runGql: function(gql) {
-    return this.runQuery({
-      gqlQuery: {
-        query_string: gql
-      }
-    });
+  queryByKind: function(value) {
+    return this.runQuery({query: {kind:[{name: value}]}});
   },
   
   lookupById: function(value) {
@@ -346,14 +344,14 @@ var DatastoreApp = {
   },
   
   /* deletes an entity by the name of it's kind and it's id */
-  deleteByKindAndId: function(name, id) {
+  deleteByKindAndId: function(value, id) {
     this.beginTransaction({});
     return this.commit({
       "transaction": this.transactionId,
       "mutations": {
         "delete": {
           "partitionId": {"projectId": this.projectId},
-          "path": [{"kind": name, "id": id}]
+          "path": [{"kind": value, "id": id}]
         }
       }
     });
@@ -468,10 +466,10 @@ function allocateIds() {
   });
 }
 
-/* Test: reserves ids for entities of kind `strings` (does not work yet) */
+/* Test: reserves ids for entities of kind `strings` */
 function reserveIds() {
   var ds = DatastoreApp.getInstance();
-  var result = ds.reserveIds({
+  ds.reserveIds({
     "keys": [{
       "partitionId": {"projectId": ds.projectId},
       "path": [{"kind": "strings", "id": "6750768661004291"}]
@@ -480,9 +478,4 @@ function reserveIds() {
       "path": [{"kind": "strings", "id": "6750768661004292"}]
     }]
   });
-  if(typeof(result) !== "undefined") {
-    for(i=0; i < result.length; i++) {
-      ds.log(JSON.stringify(result[i]));
-    }
-  }
 }
