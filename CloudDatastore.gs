@@ -318,6 +318,15 @@ var DatastoreApp = {
     return this.runQuery({query: {kind:[{name: name}]}});
   },
   
+  /* queries for entities by the name of their kind */
+  runGql: function(gql) {
+    return this.runQuery({
+      gqlQuery: {
+        query_string: gql
+      }
+    });
+  },
+  
   lookupById: function(value) {
     return this.lookup({
       "keys": [{
@@ -352,37 +361,6 @@ var DatastoreApp = {
 };
 
 
-
-/* Test: allocates ids for entities of kind `strings` */
-function allocateIds() {
-  var ds = DatastoreApp.getInstance();
-  var result = ds.allocateIds({
-    "keys": [{
-      "partitionId": {"projectId": ds.projectId},
-      "path": [{"kind": "strings"}]
-    }]
-  });
-}
-
-/* Test: reserves ids for entities of kind `strings` (does not work yet) */
-function reserveIds() {
-  var ds = DatastoreApp.getInstance();
-  var result = ds.reserveIds({
-    "keys": [{
-      "partitionId": {"projectId": ds.projectId},
-      "path": [{"kind": "strings", "id": "6750768661004291"}]
-    }, {
-      "partitionId": {"projectId": ds.projectId},
-      "path": [{"kind": "strings", "id": "6750768661004292"}]
-    }]
-  });
-  if(typeof(result) !== "undefined") {
-    for(i=0; i < result.length; i++) {
-      ds.log(JSON.stringify(result[i]));
-    }
-  }
-}
-
 /* Test: looks up entities of kind `strings` with id TEST_ID */
 function lookupById() {
   var ds = DatastoreApp.getInstance();
@@ -399,11 +377,12 @@ function lookupByName() {
 function queryByKind() {
   var ds = DatastoreApp.getInstance();
   var result = ds.queryByKind("strings");
-  if(typeof(result.batch) !== "undefined") {
-    for(i=0; i < result.batch['entityResults'].length; i++) {
-      ds.log(JSON.stringify(result.batch['entityResults'][i]));
-    }
-  }
+}
+
+/* Test: run a GQL query */
+function runGql() {
+  var ds = DatastoreApp.getInstance();
+  var result = ds.runGql("SELECT * FROM strings");
 }
 
 /* Test: deletes an entity of kind `strings` with id */
@@ -476,4 +455,34 @@ function upsertEntity() {
       }
     }
   });
+}
+
+/* Test: allocates ids for entities of kind `strings` */
+function allocateIds() {
+  var ds = DatastoreApp.getInstance();
+  var result = ds.allocateIds({
+    "keys": [{
+      "partitionId": {"projectId": ds.projectId},
+      "path": [{"kind": "strings"}]
+    }]
+  });
+}
+
+/* Test: reserves ids for entities of kind `strings` (does not work yet) */
+function reserveIds() {
+  var ds = DatastoreApp.getInstance();
+  var result = ds.reserveIds({
+    "keys": [{
+      "partitionId": {"projectId": ds.projectId},
+      "path": [{"kind": "strings", "id": "6750768661004291"}]
+    }, {
+      "partitionId": {"projectId": ds.projectId},
+      "path": [{"kind": "strings", "id": "6750768661004292"}]
+    }]
+  });
+  if(typeof(result) !== "undefined") {
+    for(i=0; i < result.length; i++) {
+      ds.log(JSON.stringify(result[i]));
+    }
+  }
 }
