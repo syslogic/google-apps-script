@@ -7,10 +7,13 @@
 /* Service Account configuration file on Google Drive */
 var CONFIG = "serviceaccount.json";
 
+/* ID of an Entity, which is used by below functional tests */
+var TEST_ID = "5558520099373056";
+
 /* API wrapper */
 var DatastoreApp = {
   
-  debug:         false,
+  debug:         true,
   scopes:        "https://www.googleapis.com/auth/datastore https://www.googleapis.com/auth/drive",
   baseUrl:       "https://datastore.googleapis.com/v1",
   httpMethod:    "POST",
@@ -26,10 +29,10 @@ var DatastoreApp = {
   getInstance: function() {
     
     /* configure the client on demand */
-    if(!this.config) {this.getConfig(CONFIG);}
+    if(! this.config) {this.getConfig(CONFIG);}
     
     /* authenticate the client on demand */
-    if(!this.oauth) {this.createService();}
+    if(! this.oauth) {this.createService();}
     
     return this;
   },
@@ -59,11 +62,17 @@ var DatastoreApp = {
     .setScope(this.scopes);
   },
   
+  /* sets the request url per method */
+  setCurrentUrl: function(method){
+      this.currentUrl = this.baseUrl + "/projects/" + this.projectId + ":" + method;
+  },
+  
   /* gets the request options */
-  getOptions: function() {
+  getOptions: function(payload) {
     if (this.oauth.hasAccess()) {
       return {
         headers: {Authorization: 'Bearer ' + this.oauth.getAccessToken()},
+        payload: JSON.stringify(payload),
         contentType: "application/json",
         muteHttpExceptions: true,
         method: this.httpMethod
@@ -71,65 +80,56 @@ var DatastoreApp = {
     }
   },
   
-  /* sets the request url per method */
-  setCurrentUrl: function(method){
-      this.currentUrl = this.baseUrl + "/projects/" + this.projectId + ":" + method;
-  },
-  
   /**
    * Queries for entities.
    * @param payload ~ partitionId, readOptions, query, gqlQuery
   **/
-  runQuery: function(payload) {return this.request("runQuery", payload, false);},
+  runQuery: function(payload) {return this.request("runQuery", payload);},
   
   /**
    * Begins a new transaction.
    * @param payload ~ transactionOptions
   **/
-  beginTransaction: function(payload) {return this.request("beginTransaction", payload, false);},
+  beginTransaction: function(payload) {return this.request("beginTransaction", payload);},
   
   /**
    * Commits a transaction, optionally creating, deleting or modifying some entities.
    * @param payload ~ mode, mutations, transaction
   **/
-  commit: function(payload) {return this.request("commit", payload, false);},
+  commit: function(payload) {return this.request("commit", payload);},
   
   /**
    * Rolls back a transaction.
    * @param payload ~ transaction
   **/
-  rollback: function(payload) {return this.request("rollback", payload, false);},
+  rollback: function(payload) {return this.request("rollback", payload);},
   
   /**
    * Allocates IDs for the given keys, which is useful for referencing an entity before it is inserted.
-   * @param keys
+   * @param payload ~
   **/
-  allocateIds: function(keys) {return this.request("allocateIds", false, keys);},
+  allocateIds: function(payload) {return this.request("allocateIds", payload);},
   
   /**
    * Prevents the supplied keys' IDs from being auto-allocated by Cloud Datastore.
-   * @param keys
+   * @param payload ~ databaseId, keys
   **/
-  reserveIds: function(keys) {return this.request("reserveIds", false, keys);},
+  reserveIds: function(payload) {return this.request("reserveIds", payload);},
   
   /**
    * Looks up entities by key.
-   * @param keys
+   * @param payload ~
   **/
-  lookup: function(keys) {return this.request("lookup", false, keys);},
+  lookup: function(payload) {return this.request("lookup", payload);},
    
   /* API wrapper */
-  request: function(method, payload, keys) {
+  request: function(method, payload) {
 
     if (this.oauth.hasAccess()) {
 
       /* configuring the request */
-       this.setCurrentUrl(method);
-      var options = this.getOptions();
-      
-      /* adding parameters */
-      if(typeof(payload) !== "undefined" && payload !== false) {options.payload = JSON.stringify(payload);}
-      if(typeof(keys)    !== "undefined" && keys    !== false) {options.keys    = JSON.stringify(keys);}
+      this.setCurrentUrl(method);
+      var options = this.getOptions(payload);
       
       /* the individual api methods can be handled here */
       switch(method) {
@@ -204,7 +204,7 @@ var DatastoreApp = {
   handleResult: function(method, result) {
     
     /* the individual api responses can be handled here */
-    switch(method){
+    switch(method) {
         
       /* projects.runQuery */
       case "runQuery":
@@ -249,6 +249,7 @@ var DatastoreApp = {
       
       /* projects.allocateIds */
       case "allocateIds":
+        
         break;
       
       /* projects.reserveIds */
@@ -262,22 +263,33 @@ var DatastoreApp = {
         break;
     }
     
-    /* always log remote errors */
-    if(typeof(result.error) !== "undefined") {
-      Logger.log(method + " > error " + result.error.code + ": " + result.error.message);
-      return false;
+    
+    if(typeof(result) !== "undefined") {
+      
+      /* log empty results */
+      if(result.length === 0) {
+        this.log(method + " > result was empty");
+      }
+      
+      /* always log remote errors */
+      if(typeof(result.error) !== "undefined") {
+        Logger.log(method + " > error " + result.error.code + ": " + result.error.message);
+        return false;
+      }
     }
+  },
+  
+  randomString: function() {
+    var str = "";
+    while (str === "") {
+      str = Math.random().toString(36).substr(2, 5);
+    }
+    return str;
   },
   
   /* logs while this.debug is true */
   log: function(message){
     if(this.debug) {Logger.log(message);}
-  },
-  
-  randomString: function() {
-    var result = "";
-    while (result == "") {result = Math.random().toString(36).substr(2, 5);}
-    return result;
   },
   
   /* resets the authorization state */
@@ -307,26 +319,9 @@ var DatastoreApp = {
 
 
 
-/* Test: queries for entities of kind `strings` */
-function queryByKind() {
-  var ds = DatastoreApp.getInstance();
-  var result = ds.queryByKind("strings");
-  if(typeof(result.batch) !== "undefined") {
-    for(i=0; i < result.batch['entityResults'].length; i++) {
-      Logger.log(JSON.stringify(result.batch['entityResults'][i]));
-    }
-  }
-}
-
-/* Test: deletes an entity of kind `strings` with id */
-function deleteByKindAndId() {
-  var ds = gds.getInstance();
-  ds.deleteByKindAndId("strings", "4957293397409792");
-}
 
 /* Test: allocates ids for an entity of kind `strings` (not yet working) */
 function allocateIds() {
-  
   var ds = DatastoreApp.getInstance();
   var result = ds.allocateIds({
     "partitionId": {"projectId": ds.projectId},
@@ -334,10 +329,45 @@ function allocateIds() {
   });
 }
 
+/* Test: allocates ids for an entity of kind `strings` (not yet working) */
+function reserveIds() {
+  var ds = DatastoreApp.getInstance();
+  var result = ds.reserveIds({
+    "partitionId": {"projectId": ds.projectId},
+    "path": [{"kind": "strings"}]
+  });
+}
+
+/* Test: looks up entities of kind `strings` */
+function lookup() {
+  var ds = DatastoreApp.getInstance();
+  var result = ds.lookup({
+    "partitionId": {"projectId": ds.projectId},
+    "path": [{"kind": "strings"}]
+  });
+}
+
+/* Test: queries for entities of kind `strings` */
+function queryByKind() {
+  var ds = DatastoreApp.getInstance();
+  var result = ds.queryByKind("strings");
+  if(typeof(result.batch) !== "undefined") {
+    for(i=0; i < result.batch['entityResults'].length; i++) {
+      ds.log(JSON.stringify(result.batch['entityResults'][i]));
+    }
+  }
+}
+
+/* Test: deletes an entity of kind `strings` with id */
+function deleteByKindAndId() {
+  var ds = gds.getInstance();
+  ds.deleteByKindAndId("strings", TEST_ID);
+}
+
 /* Test: inserts an entity */
 function insertEntity() {
 
-  /* inserts an entity of kind `strings` with a random string as property `name` */
+  /* it inserts an entity of kind `strings` with a random string as property `name` */
   var ds = DatastoreApp.getInstance();
   ds.beginTransaction({});
   ds.commit({
@@ -354,12 +384,15 @@ function insertEntity() {
       }
     }
   });
+   
+  /* and then rolls back the transaction */
+  ds.rollback({
+    "transaction": ds.transactionId
+  });
 }
 
 /* Test: updates an entity */
 function updateEntity() {
-   
-  var id = "4957293397409792";
    
   /* it selects of an entity of kind `strings` by it's id and updates it's property `name` with a random string */
   var ds = DatastoreApp.getInstance();
@@ -370,7 +403,7 @@ function updateEntity() {
       "update": {
         "key": {
           "partitionId": {"projectId": ds.projectId},
-          "path": [{"kind": "strings", "id": id}]
+          "path": [{"kind": "strings", "id": TEST_ID}]
         },
         "properties":{
           "name": {"stringValue": ds.randomString()}
@@ -382,8 +415,6 @@ function updateEntity() {
 
 /* Test: upserts an entity */
 function upsertEntity() {
-   
-  var id = "4957293397409792";
 
   /* it selects of an entity of kind `strings` by it's id and updates it's property `name` with a random string */
   var ds = DatastoreApp.getInstance();
@@ -394,7 +425,7 @@ function upsertEntity() {
       "upsert": {
         "key": {
           "partitionId": {"projectId": ds.projectId},
-          "path": [{"kind": "strings", "id": id}]
+          "path": [{"kind": "strings", "id": TEST_ID}]
         },
         "properties":{
           "name": {"stringValue": ds.randomString()}
