@@ -260,27 +260,38 @@ var DatastoreApp = {
       /* projects.lookup */
       case "lookup":
         
-        /* log found entities, when debug is true */
+        /* found entities */
         if(typeof(result.found) !== "undefined") {
             for(i=0; i < result.found.length; i++) {
               this.log(JSON.stringify(result.found[i]));
             }
         }
+        
+        /* missing entities */
+        if(typeof(result.missing) !== "undefined") {
+          for(i=0; i < result.missing.length; i++) {
+            this.log(JSON.stringify(result.missing[i]));
+          }
+        }
+        
+        /* deferred entities */
+        if(typeof(result.deferred) !== "undefined") {
+          for(i=0; i < result.deferred.length; i++) {
+            this.log(JSON.stringify(result.deferred[i]));
+          }
+        }
         break;
     }
     
-    if(typeof(result) !== "undefined") {
-      
-      /* log empty results */
-      if(result.length === 0) {
-        this.log(method + " > result was empty");
-      }
-      
-      /* always log remote errors */
-      if(typeof(result.error) !== "undefined") {
-        Logger.log(method + " > error " + result.error.code + ": " + result.error.message);
-        return false;
-      }
+    /* log empty results */
+    if(result.length === 0) {
+      this.log(method + " > result was empty");
+    }
+    
+    /* always log remote errors */
+    if(typeof(result.error) !== "undefined") {
+      Logger.log(method + " > error " + result.error.code + ": " + result.error.message);
+      return false;
     }
   },
   
@@ -305,6 +316,24 @@ var DatastoreApp = {
   /* queries for entities by the name of their kind */
   queryByKind: function(name) {
     return this.runQuery({query: {kind:[{name: name}]}});
+  },
+  
+  lookupById: function(value) {
+    return this.lookup({
+      "keys": [{
+        "partitionId": {"projectId": this.projectId},
+        "path": [{"kind": "strings", "id": value}]
+      }]
+    });
+  },
+  
+  lookupByName: function(value) {
+    return this.lookup({
+      "keys": [{
+        "partitionId": {"projectId": this.projectId},
+        "path": [{"kind": "strings", "name": value}]
+      }]
+    });
   },
   
   /* deletes an entity by the name of it's kind and it's id */
@@ -335,7 +364,7 @@ function allocateIds() {
   });
 }
 
-/* Test: reserves ids for entities of kind `strings` */
+/* Test: reserves ids for entities of kind `strings` (does not work yet) */
 function reserveIds() {
   var ds = DatastoreApp.getInstance();
   var result = ds.reserveIds({
@@ -355,14 +384,15 @@ function reserveIds() {
 }
 
 /* Test: looks up entities of kind `strings` with id TEST_ID */
-function lookup() {
+function lookupById() {
   var ds = DatastoreApp.getInstance();
-  var result = ds.lookup({
-    "keys": [{
-      "partitionId": {"projectId": ds.projectId},
-      "path": [{"kind": "strings", "id": TEST_ID}]
-    }]
-  });
+  var result = ds.lookupById(TEST_ID);
+}
+
+/* Test: looks up entities of kind `strings` with name "2ja7h" */
+function lookupByName() {
+  var ds = DatastoreApp.getInstance();
+  var result = ds.lookupByName("2ja7h");
 }
 
 /* Test: queries for entities of kind `strings` */
