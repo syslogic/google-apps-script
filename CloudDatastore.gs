@@ -1,12 +1,10 @@
 /*
-   Apps Script: Accessing Google Cloud Datastore under a Service Account
+   Apps Script: Accessing Google Cloud Datastore under a Service Account.
    @author Martin Zeitler, https://plus.google.com/106963082057954766426
    @bitcoin 19uySyXrtqQ71PFZWHb2PxBwtNitg2Dp6b
-*/
 
-/*
-  Service Account configuration file on Google Drive.
-  The "Cloud Datastore User" role must be assigned.
+  Service Account configuration file on Google Drive
+  (the "Cloud Datastore User" role must be assigned).
 */
 var CONFIG = "serviceaccount.json";
 
