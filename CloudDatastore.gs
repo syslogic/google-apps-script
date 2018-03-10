@@ -371,6 +371,7 @@ var datastore = {
       };
     } else {
       var options = {
+        startCursor: {cursor: this.startCursor},
         gqlQuery: {
           query_string: query_string,
           allowLiterals: true,
@@ -446,6 +447,7 @@ function runGql() {
   var ds = datastore.getInstance();
   var offset = "";
   for(i=0; i < 5; i++) {
+    if(i > 0 && !ds.startCursor) {continue;}
     if(! ds.startCursor) {offset = "";} else {offset = " OFFSET @startCursor";}
     ds.runGql("SELECT * FROM strings ORDER BY name ASC LIMIT " + ds.perPage + offset);
   }
