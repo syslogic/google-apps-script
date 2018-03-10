@@ -371,7 +371,6 @@ var datastore = {
       };
     } else {
       var options = {
-        startCursor: {cursor: this.startCursor},
         gqlQuery: {
           query_string: query_string,
           allowLiterals: true,
