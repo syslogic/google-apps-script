@@ -39,7 +39,7 @@ var datastore = {
   startCursor:   false,
   currentPage:   1,
   totalPages:    1,
-  perPage:       4,
+  perPage:       5,
   
   /* returns an instance */
   getInstance: function() {
@@ -449,12 +449,18 @@ function queryByKind() {
 function queryByKindPaged() {
   var ds = datastore.getInstance();
   var offset = "";
-  for(i=0; i < 5; i++) {
+  for(i=0; i < 4; i++) {
     
-    /* the last one page already */
+    /* the first query does not yet have a startCursor */
+    if(i == 0 && ! ds.startCursor) {offset = "";}
+
+    /* following queries may have a startCursor */
+    if(i > 0 && ds.startCursor) {offset = " OFFSET @startCursor";}
+    
+    /* when the startCursor was reset, it's the last one page already */
     if(i > 0 && ! ds.startCursor) {return true;}
     
-    if(! ds.startCursor) {offset = "";} else {offset = " OFFSET @startCursor";}
+    /* else, run the query */
     ds.runGql("SELECT * FROM " + test.KIND + " ORDER BY name ASC LIMIT " + ds.perPage + offset);
   }
 }
