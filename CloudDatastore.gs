@@ -4,11 +4,14 @@
    @bitcoin 19uySyXrtqQ71PFZWHb2PxBwtNitg2Dp6b
 */
 
-/* Service Account configuration file on Google Drive */
+/*
+  Service Account configuration file on Google Drive.
+  The "Cloud Datastore User" role must be assigned.
+*/
 var CONFIG = "serviceaccount.json";
 
-/* ID of an Entity, which is used by below functional tests */
-var TEST_ID = "5558520099373056";
+/* Kind, ID and Name of an Entity, which is used by below functional tests */
+var test = {KIND: "strings", ID: "5558520099373056", NAME: "2ja7h"};
 
 /* API wrapper */
 var datastore = {
@@ -427,36 +430,39 @@ var datastore = {
 /* Test: looks up entities of kind `strings` with id TEST_ID */
 function lookupById() {
   var ds = datastore.getInstance();
-  var result = ds.lookupById(TEST_ID);
+  var result = ds.lookupById(test.ID);
 }
 
-/* Test: looks up entities of kind `strings` with name "2ja7h" */
+/* Test: looks up entities of kind `strings` with name TEST_NAME */
 function lookupByName() {
   var ds = datastore.getInstance();
-  var result = ds.lookupByName("2ja7h");
+  var result = ds.lookupByName(test.NAME);
 }
 
 /* Test: queries for entities of kind `strings` */
 function queryByKind() {
   var ds = datastore.getInstance();
-  var result = ds.queryByKind("strings");
+  var result = ds.queryByKind(test.KIND);
 }
 
 /* Test: run a GQL query */
-function runGql() {
+function queryByKindPaged() {
   var ds = datastore.getInstance();
   var offset = "";
   for(i=0; i < 5; i++) {
-    if(i > 0 && !ds.startCursor) {continue;}
+    
+    /* the last one page already */
+    if(i > 0 && ! ds.startCursor) {return true;}
+    
     if(! ds.startCursor) {offset = "";} else {offset = " OFFSET @startCursor";}
-    ds.runGql("SELECT * FROM strings ORDER BY name ASC LIMIT " + ds.perPage + offset);
+    ds.runGql("SELECT * FROM " + test.KIND + " ORDER BY name ASC LIMIT " + ds.perPage + offset);
   }
 }
 
 /* Test: deletes an entity of kind `strings` with id */
 function deleteByKindAndId() {
   var ds = datastore.getInstance();
-  ds.deleteByKindAndId("strings", TEST_ID);
+  ds.deleteByKindAndId("strings", test.ID);
 }
 
 /* Test: inserts an entity */
@@ -471,7 +477,7 @@ function insertEntity() {
       "insert": {
         "key": {
           "partitionId": {"projectId": ds.projectId},
-          "path": [{"kind": "strings"}]
+          "path": [{"kind": test.KIND}]
         },
         "properties":{
           "name": {"stringValue": ds.randomString()}
@@ -493,10 +499,11 @@ function updateEntity() {
       "update": {
         "key": {
           "partitionId": {"projectId": ds.projectId},
-          "path": [{"kind": "strings", "id": TEST_ID}]
+          "path": [{"kind": test.KIND, "id": test.ID}]
         },
         "properties":{
           "name": {"stringValue": ds.randomString()}
+          
         }
       }
     }
@@ -515,10 +522,11 @@ function upsertEntity() {
       "upsert": {
         "key": {
           "partitionId": {"projectId": ds.projectId},
-          "path": [{"kind": "strings", "id": TEST_ID}]
+          "path": [{"kind": test.KIND, "id": test.ID}]
         },
         "properties":{
           "name": {"stringValue": ds.randomString()}
+          
         }
       }
     }
@@ -531,7 +539,7 @@ function allocateIds() {
   var result = ds.allocateIds({
     "keys": [{
       "partitionId": {"projectId": ds.projectId},
-      "path": [{"kind": "strings"}]
+      "path": [{"kind": test.KIND}]
     }]
   });
 }
@@ -542,10 +550,10 @@ function reserveIds() {
   ds.reserveIds({
     "keys": [{
       "partitionId": {"projectId": ds.projectId},
-      "path": [{"kind": "strings", "id": "6750768661004291"}]
+      "path": [{"kind": test.KIND, "id": "6750768661004291"}]
     }, {
       "partitionId": {"projectId": ds.projectId},
-      "path": [{"kind": "strings", "id": "6750768661004292"}]
+      "path": [{"kind": test.KIND, "id": "6750768661004292"}]
     }]
   });
 }
