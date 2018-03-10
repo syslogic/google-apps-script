@@ -35,6 +35,7 @@ var datastore = {
   
   /* pagination */
   startCursor:   false,
+  queryInProgress: false,
   currentPage:   1,
   totalPages:    1,
   perPage:       5,
@@ -139,9 +140,15 @@ var datastore = {
   /* API wrapper */
   request: function(method, payload) {
 
+    /* wait for the previous request to complete, check every 200 ms */
+    while(this.queryInProgress) {Utilities.sleep(200);}
+    
     if (this.oauth.hasAccess()) {
 
-      /* configuring the request */
+      /* set queryInProgress flag to true */
+      this.queryInProgress = true;
+      
+      /* configure the request */
       var options = this.getOptions(payload);
       this.log(method + " > " + options.payload);
       this.setCurrentUrl(method);
@@ -333,6 +340,9 @@ var datastore = {
         break;
     }
     
+    /* set queryInProgress flag to false */
+    this.queryInProgress = false;
+    
     /* always log remote errors */
     if(typeof(result.error) !== "undefined") {
       Logger.log(method + " > ERROR " + result.error.code + ": " + result.error.message);
@@ -372,7 +382,6 @@ var datastore = {
       };
     } else {
       var options = {
-        startCursor: {cursor: this.startCursor},
         gqlQuery: {
           query_string: query_string,
           allowLiterals: true,
@@ -446,20 +455,15 @@ function queryByKind() {
 /* Test: run a GQL query */
 function queryByKindPaged() {
   var ds = datastore.getInstance();
-  var offset = "";
-  for(i=0; i < 4; i++) {
-    
-    /* the first query does not yet have a startCursor */
-    if(i == 0 && ! ds.startCursor) {offset = "";}
-
-    /* following queries may have a startCursor */
-    if(i > 0 && ds.startCursor) {offset = " OFFSET @startCursor";}
-    
-    /* when the startCursor was reset, it's the last one page already */
-    if(i > 0 && ! ds.startCursor) {return true;}
-    
-    /* else, run the query */
-    ds.runGql("SELECT * FROM " + test.KIND + " ORDER BY name ASC LIMIT " + ds.perPage + offset);
+  var i=0;
+  
+  /* run the first query, yielding a startCursor */
+  var result = ds.runGql("SELECT * FROM " + test.KIND + " ORDER BY name ASC LIMIT " + ds.perPage + " OFFSET 0");
+  
+  /* when the startCursor is false,the last page had been reached */
+  while(ds.startCursor && i < 3){
+    var result = ds.runGql("SELECT * FROM " + test.KIND + " ORDER BY name ASC LIMIT " + ds.perPage + " OFFSET @startCursor");
+    i++;
   }
 }
 
