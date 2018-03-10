@@ -11,22 +11,16 @@ var CONFIG = "serviceaccount.json";
 var TEST_ID = "5558520099373056";
 
 /* API wrapper */
-var DatastoreApp = {
+var datastore = {
+  
+  /* verbose logging */
+  debug:         true,
   
   /* api related */
   scopes:        "https://www.googleapis.com/auth/datastore https://www.googleapis.com/auth/drive",
   baseUrl:       "https://datastore.googleapis.com/v1",
   httpMethod:    "POST",
   currentUrl:    false,
-  
-  /* transactions */
-  transactionId: false,
-  
-  /* pagination */
-  startCursor:   false,
-  currentPage:   1,
-  totalPages:    1,
-  perPage:       5,
   
   /* authentication */
   oauth:         false,
@@ -35,8 +29,14 @@ var DatastoreApp = {
   clientEmail:   false,
   privateKey:    false,
   
-  /* verbose logging */
-  debug:         true,
+  /* transactions */
+  transactionId: false,
+  
+  /* pagination */
+  startCursor:   false,
+  currentPage:   1,
+  totalPages:    1,
+  perPage:       4,
   
   /* returns an instance */
   getInstance: function() {
@@ -245,7 +245,6 @@ var DatastoreApp = {
               /* The query is finished, but there may be more results after the end cursor. */
               case "MORE_RESULTS_AFTER_CURSOR":
                 this.startCursor = result.batch["endCursor"];
-                this.log("this.startCursor > " + this.startCursor);
                 break;
               
               /* The query is finished, and there are no more results. */
@@ -333,11 +332,6 @@ var DatastoreApp = {
         break;
     }
     
-    /* log empty results */
-    if(result.length === 0) {
-      this.log(method + " > result was empty");
-    }
-    
     /* always log remote errors */
     if(typeof(result.error) !== "undefined") {
       Logger.log(method + " > ERROR " + result.error.code + ": " + result.error.message);
@@ -368,26 +362,26 @@ var DatastoreApp = {
    * @see https://cloud.google.com/datastore/docs/reference/data/rest/v1/projects/runQuery#GqlQuery
   **/
   runGql: function(query_string) {
-    this.log(query_string);
     if(! this.startCursor) {
       var options = {
         gqlQuery: {
           query_string: query_string,
-          allowLiterals: true}
+          allowLiterals: true
+        }
       };
     } else {
       var options = {
+        startCursor: {cursor: this.startCursor},
         gqlQuery: {
           query_string: query_string,
           allowLiterals: true,
           namedBindings: {
-            startCursor: {
-              cursor: this.startCursor
-            }
+            startCursor: {cursor: this.startCursor}
           }
         }
       };
     }
+    this.log(JSON.stringify(options));
     return this.runQuery(options);
   },
   
@@ -432,38 +426,35 @@ var DatastoreApp = {
 
 /* Test: looks up entities of kind `strings` with id TEST_ID */
 function lookupById() {
-  var ds = DatastoreApp.getInstance();
+  var ds = datastore.getInstance();
   var result = ds.lookupById(TEST_ID);
 }
 
 /* Test: looks up entities of kind `strings` with name "2ja7h" */
 function lookupByName() {
-  var ds = DatastoreApp.getInstance();
+  var ds = datastore.getInstance();
   var result = ds.lookupByName("2ja7h");
 }
 
 /* Test: queries for entities of kind `strings` */
 function queryByKind() {
-  var ds = DatastoreApp.getInstance();
+  var ds = datastore.getInstance();
   var result = ds.queryByKind("strings");
 }
 
 /* Test: run a GQL query */
 function runGql() {
-  var ds = DatastoreApp.getInstance();
-  var result = null;
-  var offset = 0;
-  var limit = ds.perPage;
-  for(i=0; i < 4; i++) {
-    if(! ds.startCursor) {offset = "0";} else {offset = "@startCursor";}
-    result = ds.runGql("SELECT * FROM strings ORDER BY name ASC LIMIT " + limit + " OFFSET " + offset);
-    Utilities.sleep(2000);
+  var ds = datastore.getInstance();
+  var offset = "";
+  for(i=0; i < 5; i++) {
+    if(! ds.startCursor) {offset = "";} else {offset = " OFFSET @startCursor";}
+    ds.runGql("SELECT * FROM strings ORDER BY name ASC LIMIT " + ds.perPage + offset);
   }
 }
 
 /* Test: deletes an entity of kind `strings` with id */
 function deleteByKindAndId() {
-  var ds = gds.getInstance();
+  var ds = datastore.getInstance();
   ds.deleteByKindAndId("strings", TEST_ID);
 }
 
@@ -471,7 +462,7 @@ function deleteByKindAndId() {
 function insertEntity() {
 
   /* it inserts an entity of kind `strings` with a random string as property `name` */
-  var ds = DatastoreApp.getInstance();
+  var ds = datastore.getInstance();
   ds.beginTransaction({});
   ds.commit({
     "transaction": ds.transactionId,
@@ -493,7 +484,7 @@ function insertEntity() {
 function updateEntity() {
    
   /* it selects of an entity of kind `strings` by it's id and updates it's property `name` with a random string */
-  var ds = DatastoreApp.getInstance();
+  var ds = datastore.getInstance();
   ds.beginTransaction({});
   ds.commit({
     "transaction": ds.transactionId,
@@ -515,7 +506,7 @@ function updateEntity() {
 function upsertEntity() {
 
   /* it selects of an entity of kind `strings` by it's id and updates it's property `name` with a random string */
-  var ds = DatastoreApp.getInstance();
+  var ds = datastore.getInstance();
   ds.beginTransaction({});
   ds.commit({
     "transaction": ds.transactionId,
@@ -535,7 +526,7 @@ function upsertEntity() {
 
 /* Test: allocates ids for entities of kind `strings` */
 function allocateIds() {
-  var ds = DatastoreApp.getInstance();
+  var ds = datastore.getInstance();
   var result = ds.allocateIds({
     "keys": [{
       "partitionId": {"projectId": ds.projectId},
@@ -546,7 +537,7 @@ function allocateIds() {
 
 /* Test: reserves ids for entities of kind `strings` */
 function reserveIds() {
-  var ds = DatastoreApp.getInstance();
+  var ds = datastore.getInstance();
   ds.reserveIds({
     "keys": [{
       "partitionId": {"projectId": ds.projectId},
