@@ -13,17 +13,30 @@ var TEST_ID = "5558520099373056";
 /* API wrapper */
 var DatastoreApp = {
   
-  debug:         true,
+  /* api related */
   scopes:        "https://www.googleapis.com/auth/datastore https://www.googleapis.com/auth/drive",
   baseUrl:       "https://datastore.googleapis.com/v1",
   httpMethod:    "POST",
   currentUrl:    false,
+  
+  /* transactions */
   transactionId: false,
+  
+  /* pagination */
+  startCursor:   false,
+  currentPage:   1,
+  totalPages:    1,
+  perPage:       5,
+  
+  /* authentication */
   oauth:         false,
   projectId:     false,
   clientId:      false,
   clientEmail:   false,
   privateKey:    false,
+  
+  /* verbose logging */
+  debug:         true,
   
   /* returns an instance */
   getInstance: function() {
@@ -203,17 +216,46 @@ var DatastoreApp = {
       /* projects.runQuery */
       case "runQuery":
         
-        /* log the query */
+        /* result.query */
         if(typeof(result.query) !== "undefined") {
           for(i=0; i < result.query.length; i++) {
             this.log(JSON.stringify(result.query[i]));
           }
         }
         
-        /* log the entityResults */
+        /* result.batch */
         if(typeof(result.batch) !== "undefined") {
-          for(i=0; i < result.batch['entityResults'].length; i++) {
+          
+          /* log the entityResults */
+          for(i=0; i < result.batch["entityResults"].length; i++) {
             this.log(JSON.stringify(result.batch['entityResults'][i]));
+          }
+          
+          /* set the endCursor as the next one startCursor */
+          if(typeof(result.batch["moreResults"]) !== "undefined") {
+            
+            switch(result.batch["moreResults"]) {
+                
+              /* There may be additional batches to fetch from this query. */
+              case "NOT_FINISHED":
+                
+              /* The query is finished, but there may be more results after the limit. */
+              case "MORE_RESULTS_AFTER_LIMIT":
+              
+              /* The query is finished, but there may be more results after the end cursor. */
+              case "MORE_RESULTS_AFTER_CURSOR":
+                this.startCursor = result.batch["endCursor"];
+                this.log("this.startCursor > " + this.startCursor);
+                break;
+              
+              /* The query is finished, and there are no more results. */
+              case "NO_MORE_RESULTS":
+                this.startCursor = false;
+                break;
+            }
+
+          } else {
+            this.startCursor = false;
           }
         }
         break;
@@ -325,8 +367,28 @@ var DatastoreApp = {
    * runs a simple GQL query
    * @see https://cloud.google.com/datastore/docs/reference/data/rest/v1/projects/runQuery#GqlQuery
   **/
-  runGql: function(gql) {
-    return this.runQuery({gqlQuery: {query_string: gql}});
+  runGql: function(query_string) {
+    this.log(query_string);
+    if(! this.startCursor) {
+      var options = {
+        gqlQuery: {
+          query_string: query_string,
+          allowLiterals: true}
+      };
+    } else {
+      var options = {
+        gqlQuery: {
+          query_string: query_string,
+          allowLiterals: true,
+          namedBindings: {
+            startCursor: {
+              cursor: this.startCursor
+            }
+          }
+        }
+      };
+    }
+    return this.runQuery(options);
   },
   
   /* queries for entities by the name of their kind */
@@ -389,7 +451,14 @@ function queryByKind() {
 /* Test: run a GQL query */
 function runGql() {
   var ds = DatastoreApp.getInstance();
-  var result = ds.runGql("SELECT * FROM strings");
+  var result = null;
+  var offset = 0;
+  var limit = ds.perPage;
+  for(i=0; i < 4; i++) {
+    if(! ds.startCursor) {offset = "0";} else {offset = "@startCursor";}
+    result = ds.runGql("SELECT * FROM strings ORDER BY name ASC LIMIT " + limit + " OFFSET " + offset);
+    Utilities.sleep(2000);
+  }
 }
 
 /* Test: deletes an entity of kind `strings` with id */
