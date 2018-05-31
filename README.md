@@ -1,7 +1,7 @@
 # CloudDatastore.gs
 CloudDatastore.gs is a client for Google Cloud Datastore, which runs as a Service Account.
 
-It is written in Apps Script. and so far, it can select, insert, update and delete entities.
+It is written in Google Apps Script - and so far, it can select, insert, update and delete entities.
 
 ## Setup
 
