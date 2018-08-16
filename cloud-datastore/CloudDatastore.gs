@@ -5,7 +5,7 @@
 */
 
 /*
-  Service Account configuration file on Google Drive
+  a Service Account configuration file on Google Drive
   (the "Cloud Datastore User" role must be assigned).
 */
 var CONFIG = "serviceaccount.json";
