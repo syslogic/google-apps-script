@@ -11,7 +11,7 @@ b) Add the `OAuth2 for Apps Script` library: `1B7FSrk5Zi6L1rSxxTDgDEUsPzlukDsi4K
 
 c) Upload the service account configuration file to your Google Drive (to be downloaded from https://console.cloud.google.com/project/_/iam-admin and then uploaded to https://drive.google.com).
 
-The service account needs to have the "Cloud Datatore User" role asigned.
+The service account needs to have the "Cloud Datastore User" role asigned.
 
 d) Adjust the script according to the filename of the configuration file.
 
