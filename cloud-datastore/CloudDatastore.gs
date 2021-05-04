@@ -1,7 +1,6 @@
 /*
    Apps Script: Accessing Google Cloud Datastore under a Service Account.
-   @author Martin Zeitler, https://plus.google.com/106963082057954766426
-   @bitcoin 3Dy3VJ533TKzEMTphUK6SyTpQyBy3BPhYg
+   @author Martin Zeitler
 */
 
 /*
